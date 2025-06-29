@@ -1,0 +1,32 @@
+{
+  permissions: {
+    allow: [
+      Bash,
+      Glob, 
+      Grep,
+      LS,
+      Read,
+      Edit,
+      MultiEdit,
+      Write,
+      Task,
+      TodoRead,
+      TodoWrite,
+      NotebookRead,
+      NotebookEdit,
+      WebFetch,
+      WebSearch
+    ]
+  },
+  tools: {
+    bash: {
+      confirm: false
+    },
+    edit: {
+      confirm: false
+    },
+    write: {
+      confirm: false
+    }
+  }
+}
