@@ -259,4 +259,3 @@ def generate_all_sample_data():
 if __name__ == "__main__":
     stats = generate_all_sample_data()
     print(f"Generated data statistics: {stats}")
-EOF < /dev/null

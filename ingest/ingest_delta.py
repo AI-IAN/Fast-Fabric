@@ -412,4 +412,3 @@ except:
 spark.stop()
 
 print("Bronze layer ingestion completed successfully\!")
-EOF < /dev/null
