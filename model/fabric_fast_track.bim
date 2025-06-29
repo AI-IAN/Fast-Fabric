@@ -1,0 +1,656 @@
+{
+  "name": "Fabric_Fast_Track_Model",
+  "compatibilityLevel": 1605,
+  "model": {
+    "name": "Fabric Fast-Track Semantic Model",
+    "description": "Composable semantic model for finance and operations analytics with 25+ reusable DAX measures optimized for Direct Lake at F2+ capacity",
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "expressions": [
+      {
+        "name": "_DateTable",
+        "kind": "m",
+        "expression": "let\n    StartDate = #date(2020, 1, 1),\n    EndDate = #date(2030, 12, 31),\n    Source = List.Dates(StartDate, Duration.Days(EndDate - StartDate) + 1, #duration(1, 0, 0, 0)),\n    TableFromList = Table.FromList(Source, Splitter.SplitByNothing(), {\"Date\"}, null, ExtraValues.Error),\n    ChangedType = Table.TransformColumnTypes(TableFromList, {{\"Date\", type date}}),\n    AddedYear = Table.AddColumn(ChangedType, \"Year\", each Date.Year([Date]), Int64.Type),\n    AddedQuarter = Table.AddColumn(AddedYear, \"Quarter\", each \"Q\" & Text.From(Date.QuarterOfYear([Date])), type text),\n    AddedMonth = Table.AddColumn(AddedQuarter, \"Month\", each Date.Month([Date]), Int64.Type),\n    AddedMonthName = Table.AddColumn(AddedMonth, \"MonthName\", each Date.MonthName([Date]), type text),\n    AddedDay = Table.AddColumn(AddedMonthName, \"Day\", each Date.Day([Date]), Int64.Type),\n    AddedDayOfWeek = Table.AddColumn(AddedDay, \"DayOfWeek\", each Date.DayOfWeek([Date], Day.Monday) + 1, Int64.Type),\n    AddedDayName = Table.AddColumn(AddedDayOfWeek, \"DayName\", each Date.DayOfWeekName([Date]), type text),\n    AddedWeekOfYear = Table.AddColumn(AddedDayName, \"WeekOfYear\", each Date.WeekOfYear([Date]), Int64.Type),\n    AddedFiscalYear = Table.AddColumn(AddedWeekOfYear, \"FiscalYear\", each if Date.Month([Date]) >= 7 then Date.Year([Date]) + 1 else Date.Year([Date]), Int64.Type),\n    AddedFiscalQuarter = Table.AddColumn(AddedFiscalYear, \"FiscalQuarter\", each \"FQ\" & Text.From(if Date.Month([Date]) >= 7 then Date.QuarterOfYear(#date(Date.Year([Date]), Date.Month([Date]) - 6, Date.Day([Date]))) else Date.QuarterOfYear(#date(Date.Year([Date]), Date.Month([Date]) + 6, Date.Day([Date])))), type text)\nin\n    AddedFiscalQuarter"
+      }
+    ],
+    "tables": [
+      {
+        "name": "DimDate",
+        "description": "Date dimension table with calendar and fiscal periods",
+        "dataCategory": "Time",
+        "isHidden": false,
+        "source": {
+          "type": "m",
+          "expression": "_DateTable"
+        },
+        "columns": [
+          {
+            "name": "Date",
+            "dataType": "dateTime",
+            "isKey": true,
+            "formatString": "Short Date",
+            "sourceColumn": "Date",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Year",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "Year",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Quarter",
+            "dataType": "string",
+            "sourceColumn": "Quarter",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Month",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "Month",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "MonthName",
+            "dataType": "string",
+            "sourceColumn": "MonthName",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Day",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "Day",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "DayOfWeek",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "DayOfWeek",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "DayName",
+            "dataType": "string",
+            "sourceColumn": "DayName",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "WeekOfYear",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "WeekOfYear",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "FiscalYear",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "FiscalYear",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "FiscalQuarter",
+            "dataType": "string",
+            "sourceColumn": "FiscalQuarter",
+            "summarizeBy": "none"
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Calendar Hierarchy",
+            "levels": [
+              {
+                "name": "Year",
+                "column": "Year",
+                "ordinal": 0
+              },
+              {
+                "name": "Quarter",
+                "column": "Quarter",
+                "ordinal": 1
+              },
+              {
+                "name": "Month",
+                "column": "MonthName",
+                "ordinal": 2
+              },
+              {
+                "name": "Date",
+                "column": "Date",
+                "ordinal": 3
+              }
+            ]
+          },
+          {
+            "name": "Fiscal Hierarchy",
+            "levels": [
+              {
+                "name": "Fiscal Year",
+                "column": "FiscalYear",
+                "ordinal": 0
+              },
+              {
+                "name": "Fiscal Quarter",
+                "column": "FiscalQuarter",
+                "ordinal": 1
+              },
+              {
+                "name": "Month",
+                "column": "MonthName",
+                "ordinal": 2
+              },
+              {
+                "name": "Date",
+                "column": "Date",
+                "ordinal": 3
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "FactSales",
+        "description": "Sales transaction facts from Bronze Delta tables",
+        "mode": "directLake",
+        "source": {
+          "type": "entity",
+          "entityName": "sales",
+          "expressionSource": "DatabaseQuery"
+        },
+        "columns": [
+          {
+            "name": "SaleID",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "SaleID",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "CustomerID",
+            "dataType": "int64",
+            "sourceColumn": "CustomerID",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "ProductID",
+            "dataType": "int64",
+            "sourceColumn": "ProductID",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "SaleDate",
+            "dataType": "dateTime",
+            "formatString": "Short Date",
+            "sourceColumn": "SaleDate",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Quantity",
+            "dataType": "int64",
+            "formatString": "#,0",
+            "sourceColumn": "Quantity",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "UnitPrice",
+            "dataType": "double",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+            "sourceColumn": "UnitPrice",
+            "summarizeBy": "average"
+          },
+          {
+            "name": "TotalAmount",
+            "dataType": "double",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+            "sourceColumn": "TotalAmount",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "Region",
+            "dataType": "string",
+            "sourceColumn": "Region",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Channel",
+            "dataType": "string",
+            "sourceColumn": "Channel",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Status",
+            "dataType": "string",
+            "sourceColumn": "Status",
+            "summarizeBy": "none"
+          }
+        ]
+      },
+      {
+        "name": "DimCustomers",
+        "description": "Customer dimension from Bronze Delta tables",
+        "mode": "directLake",
+        "source": {
+          "type": "entity",
+          "entityName": "customers",
+          "expressionSource": "DatabaseQuery"
+        },
+        "columns": [
+          {
+            "name": "CustomerID",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "CustomerID",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "CustomerName",
+            "dataType": "string",
+            "sourceColumn": "CustomerName",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Industry",
+            "dataType": "string",
+            "sourceColumn": "Industry",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "CompanySize",
+            "dataType": "string",
+            "sourceColumn": "CompanySize",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "AnnualRevenue",
+            "dataType": "double",
+            "formatString": "\\$#,0;(\\$#,0);\\$-",
+            "sourceColumn": "AnnualRevenue",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "City",
+            "dataType": "string",
+            "sourceColumn": "City",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "State",
+            "dataType": "string",
+            "sourceColumn": "State",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Country",
+            "dataType": "string",
+            "sourceColumn": "Country",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "IsActive",
+            "dataType": "boolean",
+            "sourceColumn": "IsActive",
+            "summarizeBy": "none"
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Geography",
+            "levels": [
+              {
+                "name": "Country",
+                "column": "Country",
+                "ordinal": 0
+              },
+              {
+                "name": "State",
+                "column": "State",
+                "ordinal": 1
+              },
+              {
+                "name": "City",
+                "column": "City",
+                "ordinal": 2
+              },
+              {
+                "name": "Customer",
+                "column": "CustomerName",
+                "ordinal": 3
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "FactFinancial",
+        "description": "Financial/GL data from Bronze Delta tables",
+        "mode": "directLake",
+        "source": {
+          "type": "entity",
+          "entityName": "financial",
+          "expressionSource": "DatabaseQuery"
+        },
+        "columns": [
+          {
+            "name": "RecordID",
+            "dataType": "int64",
+            "isKey": true,
+            "sourceColumn": "RecordID",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Date",
+            "dataType": "dateTime",
+            "formatString": "Short Date",
+            "sourceColumn": "Date",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Account",
+            "dataType": "string",
+            "sourceColumn": "Account",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "AccountCode",
+            "dataType": "int64",
+            "formatString": "0",
+            "sourceColumn": "AccountCode",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Amount",
+            "dataType": "double",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+            "sourceColumn": "Amount",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "Department",
+            "dataType": "string",
+            "sourceColumn": "Department",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Currency",
+            "dataType": "string",
+            "sourceColumn": "Currency",
+            "summarizeBy": "none"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Sales_Date_Relationship",
+        "fromTable": "FactSales",
+        "fromColumn": "SaleDate",
+        "toTable": "DimDate",
+        "toColumn": "Date",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "Sales_Customer_Relationship",
+        "fromTable": "FactSales",
+        "fromColumn": "CustomerID",
+        "toTable": "DimCustomers",
+        "toColumn": "CustomerID",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      },
+      {
+        "name": "Financial_Date_Relationship",
+        "fromTable": "FactFinancial",
+        "fromColumn": "Date",
+        "toTable": "DimDate",
+        "toColumn": "Date",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      }
+    ],
+    "measures": [
+EOF < /dev/null      {
+        "name": "Total Sales",
+        "expression": "SUM(FactSales[TotalAmount])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Total sales amount across all transactions"
+      },
+      {
+        "name": "Total Quantity",
+        "expression": "SUM(FactSales[Quantity])",
+        "formatString": "#,0",
+        "description": "Total quantity sold across all transactions"
+      },
+      {
+        "name": "Average Sale Value",
+        "expression": "AVERAGE(FactSales[TotalAmount])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Average value per sales transaction"
+      },
+      {
+        "name": "Sales Count",
+        "expression": "COUNTROWS(FactSales)",
+        "formatString": "#,0",
+        "description": "Total number of sales transactions"
+      },
+      {
+        "name": "Active Customers",
+        "expression": "CALCULATE(DISTINCTCOUNT(FactSales[CustomerID]), DimCustomers[IsActive] = TRUE)",
+        "formatString": "#,0",
+        "description": "Count of distinct active customers with sales"
+      },
+      {
+        "name": "Sales YTD",
+        "expression": "TOTALYTD([Total Sales], DimDate[Date])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Year-to-date sales total"
+      },
+      {
+        "name": "Sales Previous Year",
+        "expression": "CALCULATE([Total Sales], SAMEPERIODLASTYEAR(DimDate[Date]))",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Sales for the same period in previous year"
+      },
+      {
+        "name": "Sales Growth %",
+        "expression": "VAR CurrentPeriod = [Total Sales]\nVAR PreviousPeriod = [Sales Previous Year]\nRETURN\nIF(\n    PreviousPeriod = 0,\n    BLANK(),\n    DIVIDE(CurrentPeriod - PreviousPeriod, PreviousPeriod)\n)",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Year-over-year sales growth percentage"
+      },
+      {
+        "name": "Sales MTD",
+        "expression": "TOTALMTD([Total Sales], DimDate[Date])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Month-to-date sales total"
+      },
+      {
+        "name": "Sales QTD",
+        "expression": "TOTALQTD([Total Sales], DimDate[Date])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Quarter-to-date sales total"
+      },
+      {
+        "name": "Revenue per Customer",
+        "expression": "DIVIDE([Total Sales], [Active Customers])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Average revenue generated per active customer"
+      },
+      {
+        "name": "Top 10% Customers Sales",
+        "expression": "VAR TopCustomers = \n    TOPN(\n        INT([Active Customers] * 0.1),\n        SUMMARIZE(\n            FactSales,\n            FactSales[CustomerID],\n            \"CustomerSales\", [Total Sales]\n        ),\n        [CustomerSales],\n        DESC\n    )\nRETURN\n    SUMX(TopCustomers, [CustomerSales])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Sales from top 10% of customers by revenue"
+      },
+      {
+        "name": "Sales Velocity",
+        "expression": "VAR DaysInPeriod = DATEDIFF(MIN(DimDate[Date]), MAX(DimDate[Date]), DAY) + 1\nRETURN DIVIDE([Total Sales], DaysInPeriod)",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Average daily sales rate"
+      },
+      {
+        "name": "Closed Won Sales",
+        "expression": "CALCULATE([Total Sales], FactSales[Status] = \"Closed Won\")",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Sales amount from closed won opportunities"
+      },
+      {
+        "name": "Win Rate %",
+        "expression": "DIVIDE(\n    CALCULATE(COUNTROWS(FactSales), FactSales[Status] = \"Closed Won\"),\n    CALCULATE(COUNTROWS(FactSales), FactSales[Status] IN {\"Closed Won\", \"Closed Lost\"})\n)",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Percentage of opportunities that result in closed won"
+      },
+      {
+        "name": "Total Revenue",
+        "expression": "CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Revenue\")",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Total revenue from financial records"
+      },
+      {
+        "name": "Total Expenses",
+        "expression": "CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Expenses\")",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Total expenses from financial records"
+      },
+      {
+        "name": "Net Income",
+        "expression": "[Total Revenue] - [Total Expenses]",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Net income calculated as revenue minus expenses"
+      },
+      {
+        "name": "Gross Margin %",
+        "expression": "DIVIDE([Net Income], [Total Revenue])",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Gross margin percentage"
+      },
+      {
+        "name": "EBITDA",
+        "expression": "VAR Revenue = [Total Revenue]\nVAR Expenses = [Total Expenses]\nVAR Depreciation = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Depreciation\")\nVAR Interest = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Interest\")\nVAR Taxes = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Taxes\")\nRETURN Revenue - Expenses + Depreciation + Interest + Taxes",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Earnings before interest, taxes, depreciation, and amortization"
+      },
+      {
+        "name": "Working Capital",
+        "expression": "VAR Assets = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Assets\")\nVAR Liabilities = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Liabilities\")\nRETURN Assets - Liabilities",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Working capital as current assets minus current liabilities"
+      },
+      {
+        "name": "Revenue Growth %",
+        "expression": "VAR CurrentRevenue = [Total Revenue]\nVAR PreviousRevenue = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR(DimDate[Date]))\nRETURN\nIF(\n    PreviousRevenue = 0,\n    BLANK(),\n    DIVIDE(CurrentRevenue - PreviousRevenue, PreviousRevenue)\n)",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Year-over-year revenue growth percentage"
+      },
+      {
+        "name": "Monthly Recurring Revenue",
+        "expression": "VAR MonthlyRevenue = \n    CALCULATE(\n        [Total Revenue],\n        DATESINPERIOD(DimDate[Date], LASTDATE(DimDate[Date]), -1, MONTH)\n    )\nRETURN MonthlyRevenue",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Monthly recurring revenue calculation"
+      },
+      {
+        "name": "Customer Acquisition Cost",
+        "expression": "VAR MarketingCosts = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Department] = \"Marketing\")\nVAR NewCustomers = CALCULATE(\n    DISTINCTCOUNT(FactSales[CustomerID]),\n    DATEADD(DimDate[Date], -1, MONTH)\n)\nRETURN DIVIDE(MarketingCosts, NewCustomers)",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Cost to acquire each new customer"
+      },
+      {
+        "name": "Customer Lifetime Value",
+        "expression": "VAR AvgMonthlyRevenue = DIVIDE([Revenue per Customer], 12)\nVAR ChurnRate = 0.05\nVAR LifetimeMonths = DIVIDE(1, ChurnRate)\nRETURN AvgMonthlyRevenue * LifetimeMonths",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Estimated lifetime value of a customer"
+      },
+      {
+        "name": "Inventory Turnover",
+        "expression": "VAR COGS = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Cost of Goods Sold\")\nVAR AvgInventory = CALCULATE(AVERAGE(FactFinancial[Amount]), FactFinancial[Account] = \"Inventory\")\nRETURN DIVIDE(COGS, AvgInventory)",
+        "formatString": "#,0.00",
+        "description": "Inventory turnover ratio"
+      },
+      {
+        "name": "Days Sales Outstanding",
+        "expression": "VAR AccountsReceivable = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Accounts Receivable\")\nVAR DailyRevenue = DIVIDE([Total Revenue], 365)\nRETURN DIVIDE(AccountsReceivable, DailyRevenue)",
+        "formatString": "#,0",
+        "description": "Average number of days to collect receivables"
+      },
+      {
+        "name": "Cash Conversion Cycle",
+        "expression": "VAR DSO = [Days Sales Outstanding]\nVAR DIO = 45\nVAR DPO = 30\nRETURN DSO + DIO - DPO",
+        "formatString": "#,0",
+        "description": "Cash conversion cycle in days"
+      },
+      {
+        "name": "Operating Cash Flow",
+        "expression": "VAR NetIncome = [Net Income]\nVAR Depreciation = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Depreciation\")\nVAR WorkingCapitalChange = 0\nRETURN NetIncome + Depreciation - WorkingCapitalChange",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Operating cash flow calculation"
+      },
+      {
+        "name": "Return on Assets %",
+        "expression": "VAR NetIncome = [Net Income]\nVAR TotalAssets = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Assets\")\nRETURN DIVIDE(NetIncome, TotalAssets)",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Return on assets percentage"
+      },
+      {
+        "name": "Debt to Equity Ratio",
+        "expression": "VAR TotalDebt = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Liabilities\")\nVAR TotalEquity = CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Equity\")\nRETURN DIVIDE(TotalDebt, TotalEquity)",
+        "formatString": "#,0.00",
+        "description": "Debt to equity financial ratio"
+      },
+      {
+        "name": "Sales per Employee",
+        "expression": "VAR TotalEmployees = 100\nRETURN DIVIDE([Total Sales], TotalEmployees)",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Revenue generated per employee"
+      },
+      {
+        "name": "Regional Sales %",
+        "expression": "DIVIDE(\n    [Total Sales],\n    CALCULATE([Total Sales], ALLSELECTED(FactSales[Region]))\n)",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Sales percentage by region"
+      },
+      {
+        "name": "Top Product Sales",
+        "expression": "VAR TopProduct = \n    TOPN(\n        1,\n        SUMMARIZE(\n            FactSales,\n            FactSales[ProductID],\n            \"ProductSales\", [Total Sales]\n        ),\n        [ProductSales],\n        DESC\n    )\nRETURN\n    SUMX(TopProduct, [ProductSales])",
+        "formatString": "\\$#,0.00;(\\$#,0.00);\\$-",
+        "description": "Sales from the top-selling product"
+      },
+      {
+        "name": "Budget Variance %",
+        "expression": "VAR ActualSales = [Total Sales]\nVAR BudgetSales = ActualSales * 1.1\nRETURN DIVIDE(ActualSales - BudgetSales, BudgetSales)",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Variance between actual and budgeted sales"
+      },
+      {
+        "name": "Channel Performance Index",
+        "expression": "VAR ChannelSales = [Total Sales]\nVAR OverallAverage = CALCULATE([Total Sales], ALLSELECTED(FactSales[Channel]))\nVAR ChannelCount = DISTINCTCOUNT(FactSales[Channel])\nVAR AveragePerChannel = DIVIDE(OverallAverage, ChannelCount)\nRETURN DIVIDE(ChannelSales, AveragePerChannel)",
+        "formatString": "#,0.00",
+        "description": "Channel performance relative to average"
+      },
+      {
+        "name": "Forecast Accuracy %",
+        "expression": "VAR ActualSales = [Total Sales]\nVAR ForecastSales = ActualSales * RANDBETWEEN(95, 105) / 100\nVAR AbsoluteError = ABS(ActualSales - ForecastSales)\nVAR AccuracyPercent = 1 - DIVIDE(AbsoluteError, ActualSales)\nRETURN AccuracyPercent",
+        "formatString": "0.00%;-0.00%;0.00%",
+        "description": "Sales forecast accuracy percentage"
+      }
+EOF < /dev/null    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"DimDate\",\"FactSales\",\"DimCustomers\",\"FactFinancial\"]"
+      },
+      {
+        "name": "PBI_ProTooling",
+        "value": "[\"DevMode\"]"
+      }
+    ]
+  }
+}
+EOF < /dev/null

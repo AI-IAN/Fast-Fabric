@@ -1,0 +1,207 @@
+{
+  "fabric_fast_track_dax_library": {
+    "version": "1.0",
+    "description": "Composable DAX measure library for finance and operations analytics",
+    "compatibility": {
+      "direct_lake": true,
+      "minimum_capacity": "F2",
+      "power_bi_version": "Latest"
+    },
+    "measure_categories": {
+      "sales_metrics": {
+        "description": "Core sales and revenue measures",
+        "measures": [
+          {
+            "name": "Total Sales",
+            "category": "Base",
+            "complexity": "Simple",
+            "dependencies": [],
+            "pattern": "SUM(FactTable[AmountColumn])",
+            "example": "SUM(FactSales[TotalAmount])"
+          },
+          {
+            "name": "Sales Growth %",
+            "category": "Time Intelligence",
+            "complexity": "Medium",
+            "dependencies": ["Total Sales", "Sales Previous Year"],
+            "pattern": "DIVIDE([Current] - [Previous], [Previous])",
+            "example": "DIVIDE([Total Sales] - [Sales Previous Year], [Sales Previous Year])"
+          },
+          {
+            "name": "Sales YTD",
+            "category": "Time Intelligence", 
+            "complexity": "Medium",
+            "dependencies": ["Total Sales"],
+            "pattern": "TOTALYTD([Measure], DateTable[DateColumn])",
+            "example": "TOTALYTD([Total Sales], DimDate[Date])"
+          }
+        ]
+      },
+      "financial_metrics": {
+        "description": "Financial performance and accounting measures",
+        "measures": [
+          {
+            "name": "Total Revenue",
+            "category": "Base",
+            "complexity": "Simple",
+            "dependencies": [],
+            "pattern": "CALCULATE(SUM(FactTable[Amount]), FactTable[Account] = \"Revenue\")",
+            "example": "CALCULATE(SUM(FactFinancial[Amount]), FactFinancial[Account] = \"Revenue\")"
+          },
+          {
+            "name": "Net Income",
+            "category": "Calculated",
+            "complexity": "Simple",
+            "dependencies": ["Total Revenue", "Total Expenses"],
+            "pattern": "[Revenue] - [Expenses]",
+            "example": "[Total Revenue] - [Total Expenses]"
+          },
+          {
+            "name": "Gross Margin %",
+            "category": "Ratio",
+            "complexity": "Simple",
+            "dependencies": ["Net Income", "Total Revenue"],
+            "pattern": "DIVIDE([Numerator], [Denominator])",
+            "example": "DIVIDE([Net Income], [Total Revenue])"
+          }
+        ]
+      },
+      "customer_metrics": {
+        "description": "Customer analytics and segmentation measures",
+        "measures": [
+          {
+            "name": "Active Customers",
+            "category": "Count",
+            "complexity": "Medium",
+            "dependencies": [],
+            "pattern": "CALCULATE(DISTINCTCOUNT(FactTable[CustomerID]), DimTable[Status] = TRUE)",
+            "example": "CALCULATE(DISTINCTCOUNT(FactSales[CustomerID]), DimCustomers[IsActive] = TRUE)"
+          },
+          {
+            "name": "Revenue per Customer",
+            "category": "Ratio",
+            "complexity": "Simple",
+            "dependencies": ["Total Sales", "Active Customers"],
+            "pattern": "DIVIDE([Revenue], [CustomerCount])",
+            "example": "DIVIDE([Total Sales], [Active Customers])"
+          },
+          {
+            "name": "Customer Lifetime Value",
+            "category": "Advanced",
+            "complexity": "Complex",
+            "dependencies": ["Revenue per Customer"],
+            "pattern": "VAR Monthly = [Revenue] / 12\nVAR Churn = 0.05\nRETURN Monthly / Churn",
+            "example": "Complex calculation with variables and assumptions"
+          }
+        ]
+      },
+      "operational_metrics": {
+        "description": "Operational efficiency and performance measures",
+        "measures": [
+          {
+            "name": "Win Rate %",
+            "category": "Ratio",
+            "complexity": "Medium",
+            "dependencies": [],
+            "pattern": "DIVIDE(CALCULATE(COUNT(Table[ID]), Table[Status] = \"Won\"), CALCULATE(COUNT(Table[ID]), Table[Status] IN {\"Won\", \"Lost\"}))",
+            "example": "Opportunity win rate calculation"
+          },
+          {
+            "name": "Sales Velocity",
+            "category": "Rate",
+            "complexity": "Medium",
+            "dependencies": ["Total Sales"],
+            "pattern": "VAR Days = DATEDIFF(MIN(Date), MAX(Date), DAY)\nRETURN DIVIDE([Amount], Days)",
+            "example": "Daily sales rate calculation"
+          }
+        ]
+      },
+      "time_intelligence": {
+        "description": "Time-based calculations and comparisons",
+        "patterns": [
+          {
+            "name": "Previous Period",
+            "pattern": "CALCULATE([Measure], SAMEPERIODLASTYEAR(DateTable[Date]))",
+            "variations": ["SAMEPERIODLASTYEAR", "PARALLELPERIOD", "DATEADD"]
+          },
+          {
+            "name": "Year to Date",
+            "pattern": "TOTALYTD([Measure], DateTable[Date])",
+            "variations": ["TOTALYTD", "TOTALMTD", "TOTALQTD"]
+          },
+          {
+            "name": "Rolling Average",
+            "pattern": "CALCULATE(AVERAGE([Measure]), DATESINPERIOD(DateTable[Date], LASTDATE(DateTable[Date]), -N, MONTH))",
+            "variations": ["Moving averages with different periods"]
+          }
+        ]
+      }
+    },
+    "composable_patterns": {
+      "base_aggregations": {
+        "sum_pattern": "SUM(TableName[ColumnName])",
+        "count_pattern": "COUNTROWS(TableName)",
+        "distinct_count_pattern": "DISTINCTCOUNT(TableName[ColumnName])",
+        "average_pattern": "AVERAGE(TableName[ColumnName])",
+        "min_max_pattern": "MIN/MAX(TableName[ColumnName])"
+      },
+      "filter_patterns": {
+        "simple_filter": "CALCULATE([Measure], TableName[Column] = Value)",
+        "multiple_filter": "CALCULATE([Measure], TableName[Col1] = Val1, TableName[Col2] = Val2)",
+        "in_filter": "CALCULATE([Measure], TableName[Column] IN {Val1, Val2, Val3})",
+        "date_filter": "CALCULATE([Measure], DateTable[Date] >= StartDate && DateTable[Date] <= EndDate)"
+      },
+      "ratio_patterns": {
+        "simple_ratio": "DIVIDE([Numerator], [Denominator])",
+        "percentage": "DIVIDE([Part], [Whole])",
+        "growth_rate": "DIVIDE([Current] - [Previous], [Previous])",
+        "variance": "DIVIDE([Actual] - [Budget], [Budget])"
+      },
+      "ranking_patterns": {
+        "top_n": "TOPN(N, SUMMARIZE(Table, Table[Column], \"Measure\", [Measure]), [Measure], DESC)",
+        "rank": "RANKX(ALL(Table[Column]), [Measure], , DESC)",
+        "percentile": "PERCENTILE.INC(VALUES(Table[Column]), 0.9)"
+      }
+    },
+    "best_practices": {
+      "direct_lake_optimization": [
+        "Use SUM, COUNT, MIN, MAX, AVERAGE for aggregations",
+        "Avoid complex DAX functions not supported in Direct Lake",
+        "Keep measure complexity low for better performance",
+        "Use CALCULATE sparingly with simple filters",
+        "Leverage relationships instead of complex joins"
+      ],
+      "performance_tips": [
+        "Use variables to store intermediate calculations",
+        "Minimize context transitions with CALCULATE",
+        "Use DIVIDE instead of division operator for null handling",
+        "Keep measure names descriptive and consistent",
+        "Group related measures into folders"
+      ],
+      "naming_conventions": [
+        "Use Pascal Case for measure names",
+        "Include units in measure names (%, $, Count)",
+        "Use descriptive prefixes for measure categories",
+        "Avoid spaces and special characters in technical names",
+        "Document complex measures with descriptions"
+      ]
+    },
+    "validation_rules": {
+      "f2_compatibility": [
+        "Measures should execute in under 2 seconds",
+        "Avoid nested CALCULATE statements > 3 levels",
+        "Use efficient time intelligence functions",
+        "Minimize cross-table calculations",
+        "Test with realistic data volumes"
+      ],
+      "quality_checks": [
+        "Measures return expected data types",
+        "Handle division by zero scenarios",
+        "Null value handling implemented",
+        "Consistent formatting applied",
+        "Dependencies properly documented"
+      ]
+    }
+  }
+}
+EOF < /dev/null
