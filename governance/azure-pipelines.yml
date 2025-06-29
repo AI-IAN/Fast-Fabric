@@ -1,0 +1,176 @@
+# Fabric Fast-Track Deployment Pipeline
+# Triggers on push to main branch and enables Git push → Test workspace update + data-quality pass
+
+trigger:
+  branches:
+    include:
+    - main
+    - develop
+  paths:
+    include:
+    - infra/*
+    - ingest/*
+    - model/*
+    - reports/*
+    - governance/*
+
+variables:
+  - group: fabric-fast-track-secrets
+  - name: workspaceName
+    value: 'FastTrack-Test-Workspace'
+  - name: fabricCapacity
+    value: 'F2'
+
+stages:
+- stage: ValidateAndTest
+  displayName: 'Validate & Test'
+  jobs:
+  - job: DataQualityCheck
+    displayName: 'Data Quality Validation'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+    
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.9'
+        addToPath: true
+    
+    - script: |
+        pip install great-expectations pandas pyodbc
+        pip install fabric-sdk
+      displayName: 'Install Dependencies'
+    
+    - script: |
+        python governance/run_data_quality_checks.py
+      displayName: 'Run Great Expectations Data Quality Checks'
+      env:
+        FABRIC_TENANT_ID: $(fabricTenantId)
+        FABRIC_CLIENT_ID: $(fabricClientId)
+        FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+        WORKSPACE_NAME: $(workspaceName)
+    
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/data_quality_results.xml'
+        failTaskOnFailedTests: true
+      displayName: 'Publish Data Quality Results'
+
+  - job: RLSValidation
+    displayName: 'Row Level Security Tests'
+    dependsOn: DataQualityCheck
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        python governance/rls_test_harness.py
+      displayName: 'Run RLS Test Harness'
+      env:
+        FABRIC_TENANT_ID: $(fabricTenantId)
+        FABRIC_CLIENT_ID: $(fabricClientId)
+        FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+        WORKSPACE_NAME: $(workspaceName)
+    
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/rls_test_results.xml'
+        failTaskOnFailedTests: true
+      displayName: 'Publish RLS Test Results'
+
+- stage: DeployToTest
+  displayName: 'Deploy to Test Workspace'
+  dependsOn: ValidateAndTest
+  condition: succeeded()
+  jobs:
+  - deployment: DeployFastTrack
+    displayName: 'Deploy Fast-Track Components'
+    environment: 'test'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          
+          - task: AzureCLI@2
+            displayName: 'Deploy Infrastructure'
+            inputs:
+              azureSubscription: 'fabric-service-connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Deploy Fabric workspace and capacity
+                az deployment group create                   --resource-group $(resourceGroupName)                   --template-file infra/fabric-workspace.bicep                   --parameters workspaceName=$(workspaceName) capacity=$(fabricCapacity)
+          
+          - script: |
+              # Deploy data pipelines
+              python tools/deploy_pipelines.py --workspace $(workspaceName)
+            displayName: 'Deploy Data Pipelines'
+            env:
+              FABRIC_TENANT_ID: $(fabricTenantId)
+              FABRIC_CLIENT_ID: $(fabricClientId)
+              FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+          
+          - script: |
+              # Deploy semantic model
+              python tools/deploy_semantic_model.py --workspace $(workspaceName)
+            displayName: 'Deploy Semantic Model'
+            env:
+              FABRIC_TENANT_ID: $(fabricTenantId)
+              FABRIC_CLIENT_ID: $(fabricClientId)
+              FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+          
+          - script: |
+              # Deploy Power BI reports
+              python tools/deploy_reports.py --workspace $(workspaceName)
+            displayName: 'Deploy Power BI Reports'
+            env:
+              FABRIC_TENANT_ID: $(fabricTenantId)
+              FABRIC_CLIENT_ID: $(fabricClientId)
+              FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+
+- stage: PostDeploymentValidation
+  displayName: 'Post-Deployment Validation'
+  dependsOn: DeployToTest
+  jobs:
+  - job: PerformanceTest
+    displayName: 'Performance & Load Testing'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        # Test report load times (must be < 2 seconds)
+        python governance/performance_tests.py --target-load-time 2000
+      displayName: 'Validate Report Performance'
+      env:
+        FABRIC_TENANT_ID: $(fabricTenantId)
+        FABRIC_CLIENT_ID: $(fabricClientId)
+        FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+        WORKSPACE_NAME: $(workspaceName)
+    
+    - script: |
+        # Test Direct Lake refresh
+        python governance/direct_lake_tests.py
+      displayName: 'Validate Direct Lake Refresh'
+      env:
+        FABRIC_TENANT_ID: $(fabricTenantId)
+        FABRIC_CLIENT_ID: $(fabricClientId)
+        FABRIC_CLIENT_SECRET: $(fabricClientSecret)
+        WORKSPACE_NAME: $(workspaceName)
+
+  - job: NotifySuccess
+    displayName: 'Notify Deployment Success'
+    dependsOn: PerformanceTest
+    steps:
+    - script: |
+        echo "Fast-Track deployment completed successfully\!"
+        echo "Workspace: $(workspaceName)"
+        echo "Capacity: $(fabricCapacity)"
+        echo "All data quality checks passed"
+        echo "All RLS tests passed"
+        echo "Performance targets met"
+      displayName: 'Success Notification'
