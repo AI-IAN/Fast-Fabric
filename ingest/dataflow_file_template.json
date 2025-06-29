@@ -1,0 +1,108 @@
+{
+  "name": "File-to-Bronze-DataFlow",
+  "description": "Parameterized Dataflow Gen2 template for flat file (CSV/Excel/JSON) ingestion to Bronze Delta tables",
+  "version": "1.0",
+  "compatibilityLevel": 1550,
+  "queries": [
+    {
+      "name": "FileConnection",
+      "description": "Connect to file sources (CSV, Excel, JSON, Parquet)",
+      "query": "let\n    FilePath = \"{{FILE_PATH}}\",\n    FileType = \"{{FILE_TYPE}}\",\n    Source = if FileType = \"CSV\" then\n        Csv.Document(File.Contents(FilePath), [Delimiter=\"{{CSV_DELIMITER}}\", Columns={{CSV_COLUMN_COUNT}}, Encoding={{FILE_ENCODING}}, QuoteStyle=QuoteStyle.Csv])\n    else if FileType = \"Excel\" then\n        Excel.Workbook(File.Contents(FilePath), null, true)\n    else if FileType = \"JSON\" then\n        Json.Document(File.Contents(FilePath))\n    else if FileType = \"Parquet\" then\n        Parquet.Document(File.Contents(FilePath))\n    else\n        error \"Unsupported file type\",\n    ConvertedToTable = if FileType = \"JSON\" then Table.FromRecords(Source) else Source\nin\n    ConvertedToTable"
+    },
+    {
+      "name": "FileTransformation",
+      "description": "Standard transformations for file-based data",
+      "query": "let\n    Source = FileConnection,\n    PromotedHeaders = if \"{{FIRST_ROW_HEADERS}}\" = \"true\" then Table.PromoteHeaders(Source, [PromoteAllScalars=true]) else Source,\n    CleanedData = Table.TransformColumns(PromotedHeaders, {{COLUMN_TRANSFORMATIONS}}),\n    AddedFileName = Table.AddColumn(CleanedData, \"SourceFileName\", each \"{{FILE_NAME}}\", type text),\n    AddedLoadDate = Table.AddColumn(AddedFileName, \"LoadDate\", each DateTime.LocalNow(), type datetime),\n    AddedSourceSystem = Table.AddColumn(AddedLoadDate, \"SourceSystem\", each \"{{SOURCE_SYSTEM_NAME}}\", type text),\n    FilteredRows = Table.SelectRows(AddedSourceSystem, each {{FILTER_CONDITIONS}})\nin\n    FilteredRows"
+    },
+    {
+      "name": "BronzeOutput", 
+      "description": "Output to Bronze Delta table in Fabric Data Lake",
+      "query": "let\n    Source = FileTransformation\nin\n    Source"
+    }
+  ],
+  "parameters": {
+    "FILE_PATH": {
+      "type": "text",
+      "defaultValue": "abfss://landing@{{STORAGE_ACCOUNT_NAME}}.dfs.core.windows.net/{{SOURCE_SYSTEM_NAME}}/{{FILE_NAME}}",
+      "description": "Full path to source file"
+    },
+    "FILE_TYPE": {
+      "type": "text",
+      "defaultValue": "CSV",
+      "allowedValues": ["CSV", "Excel", "JSON", "Parquet"],
+      "description": "Type of source file"
+    },
+    "FILE_NAME": {
+      "type": "text",
+      "defaultValue": "customers.csv",
+      "description": "Source file name for auditing"
+    },
+    "CSV_DELIMITER": {
+      "type": "text",
+      "defaultValue": ",",
+      "description": "CSV field delimiter"
+    },
+    "CSV_COLUMN_COUNT": {
+      "type": "number",
+      "defaultValue": 10,
+      "description": "Number of columns in CSV file"
+    },
+    "FILE_ENCODING": {
+      "type": "text",
+      "defaultValue": 65001,
+      "description": "File encoding (65001 = UTF-8)"
+    },
+    "FIRST_ROW_HEADERS": {
+      "type": "text",
+      "defaultValue": "true",
+      "description": "Whether first row contains column headers"
+    },
+    "COLUMN_TRANSFORMATIONS": {
+      "type": "text",
+      "defaultValue": "{{\"CustomerID\", each Text.Trim(_), type text}, {\"Amount\", each Number.From(_), type number}}",
+      "description": "Column transformation rules"
+    },
+    "SOURCE_SYSTEM_NAME": {
+      "type": "text",
+      "defaultValue": "FileSystem",
+      "description": "Name of source system for auditing"
+    },
+    "FILTER_CONDITIONS": {
+      "type": "text",
+      "defaultValue": "[CustomerID] <> null and [CustomerID] <> \"\"",
+      "description": "Data quality filter conditions"
+    }
+  },
+  "destinations": {
+    "bronze_delta_table": {
+      "type": "delta",
+      "location": "abfss://bronze@{{STORAGE_ACCOUNT_NAME}}.dfs.core.windows.net/{{SOURCE_SYSTEM_NAME}}/{{FILE_NAME}}/",
+      "format": "delta",
+      "mode": "append",
+      "partitionColumns": ["LoadDate"],
+      "options": {
+        "mergeSchema": "true",
+        "overwriteSchema": "false"
+      }
+    }
+  },
+  "schedule": {
+    "frequency": "{{SCHEDULE_FREQUENCY}}",
+    "interval": "{{SCHEDULE_INTERVAL}}",
+    "startTime": "{{SCHEDULE_START_TIME}}"
+  },
+  "monitoring": {
+    "enableMetrics": true,
+    "alertOnFailure": true,
+    "retryPolicy": {
+      "maxRetries": 3,
+      "retryInterval": "PT5M"
+    },
+    "fileWatcher": {
+      "enabled": true,
+      "triggerOnNewFile": true,
+      "filePattern": "{{FILE_PATTERN}}"
+    }
+  }
+}
+EOF < /dev/null

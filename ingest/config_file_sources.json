@@ -1,0 +1,191 @@
+{
+  "file_data_sources": {
+    "csv": {
+      "name": "CSV Files",
+      "description": "Comma-separated values files",
+      "supported_extensions": [".csv", ".txt"],
+      "default_options": {
+        "delimiter": ",",
+        "quote_char": "\"",
+        "escape_char": "\\",
+        "header": true,
+        "encoding": "UTF-8",
+        "null_value": "",
+        "date_format": "yyyy-MM-dd",
+        "timestamp_format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "advanced_options": {
+        "skip_lines": 0,
+        "ignore_leading_whitespace": true,
+        "ignore_trailing_whitespace": true,
+        "multiline": false,
+        "comment_char": "#"
+      }
+    },
+    "excel": {
+      "name": "Excel Files",
+      "description": "Microsoft Excel spreadsheets",
+      "supported_extensions": [".xlsx", ".xls"],
+      "default_options": {
+        "sheet_name": 0,
+        "header": true,
+        "skip_rows": 0,
+        "use_cols": null,
+        "date_format": "auto",
+        "infer_schema": true
+      },
+      "advanced_options": {
+        "password": null,
+        "engine": "openpyxl",
+        "convert_float": true,
+        "thousands_separator": ","
+      }
+    },
+    "json": {
+      "name": "JSON Files",
+      "description": "JavaScript Object Notation files",
+      "supported_extensions": [".json", ".jsonl"],
+      "default_options": {
+        "multiline": true,
+        "lines": false,
+        "encoding": "UTF-8",
+        "date_format": "iso"
+      },
+      "advanced_options": {
+        "allow_comments": false,
+        "allow_unquoted_field_names": false,
+        "allow_single_quotes": false,
+        "strict": true
+      }
+    },
+    "parquet": {
+      "name": "Parquet Files", 
+      "description": "Apache Parquet columnar storage files",
+      "supported_extensions": [".parquet"],
+      "default_options": {
+        "engine": "pyarrow",
+        "use_pandas_metadata": true,
+        "infer_schema": true
+      },
+      "advanced_options": {
+        "validate_schema": true,
+        "memory_map": true,
+        "buffer_size": 0
+      }
+    },
+    "xml": {
+      "name": "XML Files",
+      "description": "Extensible Markup Language files",
+      "supported_extensions": [".xml"],
+      "default_options": {
+        "row_tag": "row",
+        "root_tag": "root",
+        "encoding": "UTF-8",
+        "attribute_prefix": "_",
+        "value_tag": "_VALUE"
+      }
+    },
+    "delimited": {
+      "name": "Custom Delimited Files",
+      "description": "Files with custom delimiters",
+      "supported_extensions": [".tsv", ".psv", ".txt"],
+      "default_options": {
+        "delimiter": "\\t",
+        "header": true,
+        "encoding": "UTF-8",
+        "quote_char": null,
+        "escape_char": null
+      }
+    }
+  },
+  "file_patterns": {
+    "daily_files": {
+      "pattern": "{{SOURCE_SYSTEM}}_{{TABLE_NAME}}_{{YYYY}}{{MM}}{{DD}}.{{EXTENSION}}",
+      "example": "CRM_customers_20240629.csv"
+    },
+    "hourly_files": {
+      "pattern": "{{SOURCE_SYSTEM}}_{{TABLE_NAME}}_{{YYYY}}{{MM}}{{DD}}_{{HH}}.{{EXTENSION}}",
+      "example": "Sales_transactions_20240629_14.json"
+    },
+    "incremental_files": {
+      "pattern": "{{SOURCE_SYSTEM}}_{{TABLE_NAME}}_increment_{{TIMESTAMP}}.{{EXTENSION}}",
+      "example": "ERP_products_increment_20240629140530.parquet"
+    },
+    "versioned_files": {
+      "pattern": "{{SOURCE_SYSTEM}}_{{TABLE_NAME}}_v{{VERSION}}.{{EXTENSION}}",
+      "example": "Finance_ledger_v001.xlsx"
+    }
+  },
+  "storage_locations": {
+    "azure_blob": {
+      "name": "Azure Blob Storage",
+      "protocol": "abfss",
+      "url_template": "abfss://{{CONTAINER}}@{{STORAGE_ACCOUNT}}.dfs.core.windows.net/{{PATH}}",
+      "authentication": {
+        "type": "managed_identity",
+        "fallback": "storage_key"
+      }
+    },
+    "azure_files": {
+      "name": "Azure Files",
+      "protocol": "https",
+      "url_template": "https://{{STORAGE_ACCOUNT}}.file.core.windows.net/{{SHARE}}/{{PATH}}"
+    },
+    "sftp": {
+      "name": "SFTP Server",
+      "protocol": "sftp",
+      "url_template": "sftp://{{USERNAME}}:{{PASSWORD}}@{{HOST}}:{{PORT}}/{{PATH}}",
+      "default_port": 22
+    },
+    "ftp": {
+      "name": "FTP Server", 
+      "protocol": "ftp",
+      "url_template": "ftp://{{USERNAME}}:{{PASSWORD}}@{{HOST}}:{{PORT}}/{{PATH}}",
+      "default_port": 21
+    },
+    "local_filesystem": {
+      "name": "Local File System",
+      "protocol": "file",
+      "url_template": "file:///{{PATH}}"
+    }
+  },
+  "data_validation": {
+    "file_checks": {
+      "file_exists": true,
+      "file_size_min": 0,
+      "file_size_max": "10GB",
+      "file_age_max_hours": 168,
+      "extension_validation": true
+    },
+    "content_checks": {
+      "header_validation": true,
+      "row_count_min": 1,
+      "column_count_validation": true,
+      "encoding_validation": true,
+      "schema_validation": false
+    },
+    "quality_checks": {
+      "duplicate_check": true,
+      "null_value_threshold": 0.95,
+      "data_type_validation": true,
+      "referential_integrity": false
+    }
+  },
+  "archive_strategy": {
+    "processed_files": {
+      "action": "move",
+      "destination": "{{CONTAINER}}/archive/processed/{{YYYY}}/{{MM}}/{{DD}}/",
+      "retention_days": 365
+    },
+    "failed_files": {
+      "action": "move",
+      "destination": "{{CONTAINER}}/archive/failed/{{YYYY}}/{{MM}}/{{DD}}/",
+      "retention_days": 90
+    },
+    "duplicate_files": {
+      "action": "skip",
+      "log_level": "warning"
+    }
+  }
+}
+EOF < /dev/null

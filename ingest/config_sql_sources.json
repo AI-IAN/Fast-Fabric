@@ -1,0 +1,117 @@
+{
+  "sql_data_sources": {
+    "sql_server": {
+      "name": "SQL Server",
+      "description": "Microsoft SQL Server database connection",
+      "connection_template": {
+        "server": "{{SQL_SERVER_NAME}}",
+        "database": "{{SQL_DATABASE_NAME}}",
+        "username": "{{SQL_USERNAME}}",
+        "password": "{{SECRET:KeyVault:sql-password}}",
+        "port": 1433,
+        "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+        "connection_string": "jdbc:sqlserver://{{SQL_SERVER_NAME}}:1433;databaseName={{SQL_DATABASE_NAME}};user={{SQL_USERNAME}};password={{SQL_PASSWORD}};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;"
+      },
+      "sample_tables": [
+        {
+          "schema": "dbo",
+          "table": "customers",
+          "incremental_column": "ModifiedDate",
+          "business_key": "CustomerID"
+        },
+        {
+          "schema": "sales",
+          "table": "orders",
+          "incremental_column": "OrderDate",
+          "business_key": "OrderID"
+        },
+        {
+          "schema": "inventory",
+          "table": "products",
+          "incremental_column": "LastUpdated",
+          "business_key": "ProductID"
+        }
+      ]
+    },
+    "postgresql": {
+      "name": "PostgreSQL",
+      "description": "PostgreSQL database connection",
+      "connection_template": {
+        "server": "{{POSTGRES_SERVER}}",
+        "database": "{{POSTGRES_DATABASE}}",
+        "username": "{{POSTGRES_USERNAME}}",
+        "password": "{{SECRET:KeyVault:postgres-password}}",
+        "port": 5432,
+        "driver": "org.postgresql.Driver",
+        "connection_string": "jdbc:postgresql://{{POSTGRES_SERVER}}:5432/{{POSTGRES_DATABASE}}?user={{POSTGRES_USERNAME}}&password={{POSTGRES_PASSWORD}}&ssl=true"
+      }
+    },
+    "mysql": {
+      "name": "MySQL",
+      "description": "MySQL database connection",
+      "connection_template": {
+        "server": "{{MYSQL_SERVER}}",
+        "database": "{{MYSQL_DATABASE}}",
+        "username": "{{MYSQL_USERNAME}}",
+        "password": "{{SECRET:KeyVault:mysql-password}}",
+        "port": 3306,
+        "driver": "com.mysql.cj.jdbc.Driver",
+        "connection_string": "jdbc:mysql://{{MYSQL_SERVER}}:3306/{{MYSQL_DATABASE}}?user={{MYSQL_USERNAME}}&password={{MYSQL_PASSWORD}}&useSSL=true"
+      }
+    },
+    "oracle": {
+      "name": "Oracle",
+      "description": "Oracle database connection",
+      "connection_template": {
+        "server": "{{ORACLE_SERVER}}",
+        "service_name": "{{ORACLE_SERVICE}}",
+        "username": "{{ORACLE_USERNAME}}",
+        "password": "{{SECRET:KeyVault:oracle-password}}",
+        "port": 1521,
+        "driver": "oracle.jdbc.driver.OracleDriver",
+        "connection_string": "jdbc:oracle:thin:@{{ORACLE_SERVER}}:1521:{{ORACLE_SERVICE}}"
+      }
+    }
+  },
+  "data_quality_rules": {
+    "default_rules": {
+      "null_checks": ["id", "primary_key"],
+      "trim_whitespace": true,
+      "standardize_case": "lower",
+      "remove_duplicates": true
+    },
+    "customer_rules": {
+      "null_checks": ["CustomerID", "CustomerName"],
+      "pattern_checks": {
+        "Email": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      },
+      "range_checks": {
+        "AnnualRevenue": {"min": 0, "max": 1000000000}
+      }
+    },
+    "sales_rules": {
+      "null_checks": ["SaleID", "CustomerID", "TotalAmount"],
+      "range_checks": {
+        "TotalAmount": {"min": 0, "max": 10000000},
+        "Quantity": {"min": 1, "max": 10000}
+      }
+    }
+  },
+  "incremental_loading": {
+    "strategies": {
+      "timestamp_based": {
+        "description": "Use timestamp column for incremental loading",
+        "query_template": "SELECT * FROM {{TABLE_NAME}} WHERE {{INCREMENTAL_COLUMN}} > '{{LAST_UPDATED}}'"
+      },
+      "change_tracking": {
+        "description": "Use SQL Server change tracking",
+        "query_template": "SELECT * FROM CHANGETABLE(CHANGES {{TABLE_NAME}}, {{LAST_SYNC_VERSION}}) AS CT"
+      },
+      "full_load": {
+        "description": "Full table reload (use for small tables)",
+        "query_template": "SELECT * FROM {{TABLE_NAME}}"
+      }
+    }
+  }
+}
+EOF < /dev/null

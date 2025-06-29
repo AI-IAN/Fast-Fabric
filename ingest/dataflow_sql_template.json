@@ -1,0 +1,97 @@
+{
+  "name": "SQL-to-Bronze-DataFlow",
+  "description": "Parameterized Dataflow Gen2 template for SQL Server/ODBC data ingestion to Bronze Delta tables",
+  "version": "1.0",
+  "compatibilityLevel": 1550,
+  "queries": [
+    {
+      "name": "SourceConnection",
+      "description": "SQL Server connection configuration",
+      "query": "let\n    ServerName = #\"{{SQL_SERVER_NAME}}\",\n    DatabaseName = #\"{{SQL_DATABASE_NAME}}\",\n    UserName = #\"{{SQL_USERNAME}}\",\n    Password = #\"{{SQL_PASSWORD}}\",\n    Source = Sql.Database(ServerName, DatabaseName, [Query=\"SELECT * FROM {{SOURCE_TABLE_NAME}} WHERE {{INCREMENTAL_COLUMN}} > '{{LAST_UPDATED}}'\"]) \nin\n    Source"
+    },
+    {
+      "name": "DataTransformation",
+      "description": "Standard transformations for bronze layer", 
+      "query": "let\n    Source = SourceConnection,\n    AddedLoadDate = Table.AddColumn(Source, \"LoadDate\", each DateTime.LocalNow(), type datetime),\n    AddedSourceSystem = Table.AddColumn(AddedLoadDate, \"SourceSystem\", each \"{{SOURCE_SYSTEM_NAME}}\", type text),\n    FilteredRows = Table.SelectRows(AddedSourceSystem, each {{FILTER_CONDITIONS}})\nin\n    FilteredRows"
+    },
+    {
+      "name": "BronzeOutput",
+      "description": "Output to Bronze Delta table in Fabric Data Lake",
+      "query": "let\n    Source = DataTransformation\nin\n    Source"
+    }
+  ],
+  "parameters": {
+    "SQL_SERVER_NAME": {
+      "type": "text",
+      "defaultValue": "demo-sql-server.database.windows.net",
+      "description": "SQL Server hostname or IP address"
+    },
+    "SQL_DATABASE_NAME": {
+      "type": "text", 
+      "defaultValue": "SampleDB",
+      "description": "Database name on SQL Server"
+    },
+    "SQL_USERNAME": {
+      "type": "text",
+      "defaultValue": "fabricuser",
+      "description": "SQL Server username"
+    },
+    "SQL_PASSWORD": {
+      "type": "text",
+      "defaultValue": "{{SECRET:KeyVault:sql-password}}",
+      "description": "SQL Server password (use Key Vault reference)"
+    },
+    "SOURCE_TABLE_NAME": {
+      "type": "text",
+      "defaultValue": "dbo.customers",
+      "description": "Source table name with schema"
+    },
+    "SOURCE_SYSTEM_NAME": {
+      "type": "text",
+      "defaultValue": "CRM_System",
+      "description": "Name of source system for auditing"
+    },
+    "INCREMENTAL_COLUMN": {
+      "type": "text",
+      "defaultValue": "ModifiedDate",
+      "description": "Column for incremental data loading"
+    },
+    "LAST_UPDATED": {
+      "type": "datetime",
+      "defaultValue": "1900-01-01T00:00:00Z",
+      "description": "Last successful load timestamp"
+    },
+    "FILTER_CONDITIONS": {
+      "type": "text",
+      "defaultValue": "[CustomerID] <> null and [CustomerName] <> null",
+      "description": "Data quality filter conditions"
+    }
+  },
+  "destinations": {
+    "bronze_delta_table": {
+      "type": "delta",
+      "location": "abfss://bronze@{{STORAGE_ACCOUNT_NAME}}.dfs.core.windows.net/{{SOURCE_SYSTEM_NAME}}/{{SOURCE_TABLE_NAME}}/",
+      "format": "delta",
+      "mode": "append",
+      "partitionColumns": ["LoadDate"],
+      "options": {
+        "mergeSchema": "true",
+        "overwriteSchema": "false"
+      }
+    }
+  },
+  "schedule": {
+    "frequency": "{{SCHEDULE_FREQUENCY}}",
+    "interval": "{{SCHEDULE_INTERVAL}}",
+    "startTime": "{{SCHEDULE_START_TIME}}"
+  },
+  "monitoring": {
+    "enableMetrics": true,
+    "alertOnFailure": true,
+    "retryPolicy": {
+      "maxRetries": 3,
+      "retryInterval": "PT5M"
+    }
+  }
+}
+EOF < /dev/null

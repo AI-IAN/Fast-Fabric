@@ -1,0 +1,178 @@
+{
+  "saas_api_sources": {
+    "salesforce": {
+      "name": "Salesforce",
+      "description": "Salesforce CRM API integration",
+      "base_url": "https://{{INSTANCE}}.salesforce.com/services/data/v57.0",
+      "authentication": {
+        "type": "oauth2",
+        "token_url": "https://{{INSTANCE}}.salesforce.com/services/oauth2/token",
+        "client_id": "{{SALESFORCE_CLIENT_ID}}",
+        "client_secret": "{{SECRET:KeyVault:salesforce-secret}}",
+        "username": "{{SALESFORCE_USERNAME}}",
+        "password": "{{SECRET:KeyVault:salesforce-password}}"
+      },
+      "endpoints": {
+        "accounts": {
+          "path": "/sobjects/Account",
+          "method": "GET",
+          "incremental_field": "LastModifiedDate",
+          "query_params": "fields=Id,Name,Type,Industry,AnnualRevenue,LastModifiedDate"
+        },
+        "opportunities": {
+          "path": "/sobjects/Opportunity", 
+          "method": "GET",
+          "incremental_field": "LastModifiedDate",
+          "query_params": "fields=Id,AccountId,Name,StageName,Amount,CloseDate,LastModifiedDate"
+        },
+        "contacts": {
+          "path": "/sobjects/Contact",
+          "method": "GET", 
+          "incremental_field": "LastModifiedDate",
+          "query_params": "fields=Id,AccountId,FirstName,LastName,Email,Phone,LastModifiedDate"
+        }
+      },
+      "rate_limit": {
+        "requests_per_hour": 5000,
+        "requests_per_day": 100000
+      }
+    },
+    "hubspot": {
+      "name": "HubSpot",
+      "description": "HubSpot CRM API integration",
+      "base_url": "https://api.hubapi.com",
+      "authentication": {
+        "type": "api_key",
+        "header": "Authorization",
+        "token_format": "Bearer {{HUBSPOT_ACCESS_TOKEN}}"
+      },
+      "endpoints": {
+        "companies": {
+          "path": "/crm/v3/objects/companies",
+          "method": "GET",
+          "incremental_field": "hs_lastmodifieddate",
+          "query_params": "properties=name,domain,industry,annualrevenue,hs_lastmodifieddate&limit=100"
+        },
+        "contacts": {
+          "path": "/crm/v3/objects/contacts",
+          "method": "GET",
+          "incremental_field": "lastmodifieddate", 
+          "query_params": "properties=firstname,lastname,email,phone,lastmodifieddate&limit=100"
+        },
+        "deals": {
+          "path": "/crm/v3/objects/deals",
+          "method": "GET",
+          "incremental_field": "hs_lastmodifieddate",
+          "query_params": "properties=dealname,amount,dealstage,closedate,hs_lastmodifieddate&limit=100"
+        }
+      },
+      "rate_limit": {
+        "requests_per_second": 10,
+        "requests_per_day": 40000
+      }
+    },
+    "stripe": {
+      "name": "Stripe",
+      "description": "Stripe payment processing API",
+      "base_url": "https://api.stripe.com/v1",
+      "authentication": {
+        "type": "api_key",
+        "header": "Authorization", 
+        "token_format": "Bearer {{SECRET:KeyVault:stripe-secret-key}}"
+      },
+      "endpoints": {
+        "customers": {
+          "path": "/customers",
+          "method": "GET",
+          "incremental_field": "created",
+          "query_params": "limit=100&created[gte]={{LAST_UPDATED_EPOCH}}"
+        },
+        "charges": {
+          "path": "/charges",
+          "method": "GET",
+          "incremental_field": "created",
+          "query_params": "limit=100&created[gte]={{LAST_UPDATED_EPOCH}}"
+        },
+        "subscriptions": {
+          "path": "/subscriptions",
+          "method": "GET",
+          "incremental_field": "created",
+          "query_params": "limit=100&created[gte]={{LAST_UPDATED_EPOCH}}"
+        }
+      },
+      "rate_limit": {
+        "requests_per_second": 25,
+        "requests_per_hour": 1000
+      }
+    },
+    "dynamics365": {
+      "name": "Microsoft Dynamics 365",
+      "description": "Dynamics 365 CRM API integration",
+      "base_url": "https://{{ORG_NAME}}.crm.dynamics.com/api/data/v9.2",
+      "authentication": {
+        "type": "oauth2",
+        "token_url": "https://login.microsoftonline.com/{{TENANT_ID}}/oauth2/v2.0/token",
+        "client_id": "{{DYNAMICS_CLIENT_ID}}",
+        "client_secret": "{{SECRET:KeyVault:dynamics-secret}}",
+        "scope": "https://{{ORG_NAME}}.crm.dynamics.com/.default"
+      },
+      "endpoints": {
+        "accounts": {
+          "path": "/accounts",
+          "method": "GET",
+          "incremental_field": "modifiedon",
+          "query_params": "$select=accountid,name,telephone1,revenue,modifiedon&$filter=modifiedon gt {{LAST_UPDATED}}"
+        },
+        "contacts": {
+          "path": "/contacts", 
+          "method": "GET",
+          "incremental_field": "modifiedon",
+          "query_params": "$select=contactid,fullname,emailaddress1,telephone1,modifiedon&$filter=modifiedon gt {{LAST_UPDATED}}"
+        },
+        "opportunities": {
+          "path": "/opportunities",
+          "method": "GET",
+          "incremental_field": "modifiedon", 
+          "query_params": "$select=opportunityid,name,estimatedvalue,actualclosedate,modifiedon&$filter=modifiedon gt {{LAST_UPDATED}}"
+        }
+      }
+    }
+  },
+  "common_patterns": {
+    "pagination": {
+      "offset_based": {
+        "description": "Use offset/limit for pagination",
+        "params": ["offset", "limit"]
+      },
+      "cursor_based": {
+        "description": "Use cursor/token for pagination", 
+        "params": ["cursor", "page_size"]
+      },
+      "page_based": {
+        "description": "Use page number and size",
+        "params": ["page", "per_page"]
+      }
+    },
+    "error_handling": {
+      "retry_strategy": "exponential_backoff",
+      "max_retries": 3,
+      "retry_codes": [429, 500, 502, 503, 504],
+      "timeout_seconds": 30
+    },
+    "response_formats": {
+      "data_wrapper": {
+        "description": "Data wrapped in 'data' field",
+        "path": "data"
+      },
+      "results_wrapper": {
+        "description": "Data wrapped in 'results' field",
+        "path": "results"  
+      },
+      "direct_array": {
+        "description": "Response is direct array",
+        "path": ""
+      }
+    }
+  }
+}
+EOF < /dev/null

@@ -1,0 +1,106 @@
+{
+  "name": "SaaS-API-to-Bronze-DataFlow",
+  "description": "Parameterized Dataflow Gen2 template for SaaS API data ingestion to Bronze Delta tables",
+  "version": "1.0", 
+  "compatibilityLevel": 1550,
+  "queries": [
+    {
+      "name": "APIConnection",
+      "description": "REST API connection with authentication",
+      "query": "let\n    BaseURL = \"{{API_BASE_URL}}\",\n    APIKey = \"{{API_KEY}}\",\n    Endpoint = \"{{API_ENDPOINT}}\",\n    Headers = [#\"Authorization\" = \"Bearer \" & APIKey, #\"Content-Type\" = \"application/json\"],\n    FullURL = BaseURL & Endpoint & \"?\" & \"{{QUERY_PARAMETERS}}\",\n    Source = Json.Document(Web.Contents(FullURL, [Headers=Headers])),\n    DataTable = if Type.Is(Value.Type(Source), type table) then Source else Table.FromRecords(Source)\nin\n    DataTable"
+    },
+    {
+      "name": "JSONTransformation",
+      "description": "Transform JSON response to tabular format",
+      "query": "let\n    Source = APIConnection,\n    ExpandedData = if \"{{NESTED_FIELD_PATH}}\" <> \"\" then Table.ExpandRecordColumn(Source, \"{{NESTED_FIELD_PATH}}\", {{EXPAND_COLUMNS}}) else Source,\n    AddedLoadDate = Table.AddColumn(ExpandedData, \"LoadDate\", each DateTime.LocalNow(), type datetime),\n    AddedSourceSystem = Table.AddColumn(AddedLoadDate, \"SourceSystem\", each \"{{SOURCE_SYSTEM_NAME}}\", type text),\n    AddedAPIVersion = Table.AddColumn(AddedSourceSystem, \"APIVersion\", each \"{{API_VERSION}}\", type text),\n    FilteredRows = Table.SelectRows(AddedAPIVersion, each {{FILTER_CONDITIONS}})\nin\n    FilteredRows"
+    },
+    {
+      "name": "BronzeOutput",
+      "description": "Output to Bronze Delta table in Fabric Data Lake",
+      "query": "let\n    Source = JSONTransformation\nin\n    Source"
+    }
+  ],
+  "parameters": {
+    "API_BASE_URL": {
+      "type": "text",
+      "defaultValue": "https://api.example.com/v1",
+      "description": "Base URL for the SaaS API"
+    },
+    "API_KEY": {
+      "type": "text",
+      "defaultValue": "{{SECRET:KeyVault:api-key}}",
+      "description": "API key or bearer token (use Key Vault reference)"
+    },
+    "API_ENDPOINT": {
+      "type": "text",
+      "defaultValue": "/customers",
+      "description": "API endpoint path"
+    },
+    "API_VERSION": {
+      "type": "text",
+      "defaultValue": "v1",
+      "description": "API version for auditing"
+    },
+    "QUERY_PARAMETERS": {
+      "type": "text",
+      "defaultValue": "limit=1000&modified_since={{LAST_UPDATED}}",
+      "description": "URL query parameters for filtering"
+    },
+    "NESTED_FIELD_PATH": {
+      "type": "text",
+      "defaultValue": "data",
+      "description": "Path to nested data array in JSON response"
+    },
+    "EXPAND_COLUMNS": {
+      "type": "text",
+      "defaultValue": "{\"id\", \"name\", \"email\", \"created_at\", \"updated_at\"}",
+      "description": "Columns to expand from nested JSON"
+    },
+    "SOURCE_SYSTEM_NAME": {
+      "type": "text",
+      "defaultValue": "SalesforceAPI",
+      "description": "Name of source system for auditing"
+    },
+    "LAST_UPDATED": {
+      "type": "datetime",
+      "defaultValue": "1900-01-01T00:00:00Z",
+      "description": "Last successful load timestamp for incremental loading"
+    },
+    "FILTER_CONDITIONS": {
+      "type": "text",
+      "defaultValue": "[id] <> null and [name] <> null",
+      "description": "Data quality filter conditions"
+    }
+  },
+  "destinations": {
+    "bronze_delta_table": {
+      "type": "delta",
+      "location": "abfss://bronze@{{STORAGE_ACCOUNT_NAME}}.dfs.core.windows.net/{{SOURCE_SYSTEM_NAME}}/{{API_ENDPOINT}}/",
+      "format": "delta",
+      "mode": "append",
+      "partitionColumns": ["LoadDate"],
+      "options": {
+        "mergeSchema": "true",
+        "overwriteSchema": "false"
+      }
+    }
+  },
+  "schedule": {
+    "frequency": "{{SCHEDULE_FREQUENCY}}",
+    "interval": "{{SCHEDULE_INTERVAL}}",
+    "startTime": "{{SCHEDULE_START_TIME}}"
+  },
+  "monitoring": {
+    "enableMetrics": true,
+    "alertOnFailure": true,
+    "retryPolicy": {
+      "maxRetries": 3,
+      "retryInterval": "PT10M"
+    },
+    "rateLimit": {
+      "requestsPerMinute": "{{API_RATE_LIMIT}}",
+      "backoffStrategy": "exponential"
+    }
+  }
+}
+EOF < /dev/null
