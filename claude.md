@@ -1,7 +1,22 @@
 # Claude Code Instructions for Fabric Fast-Track Development
 
+## Development Environment Configuration
+**CRITICAL: Claude Code is configured for autonomous development in this environment**
+- Working directory: /root/Fast-Fabric/
+- All operations must be performed within this directory structure
+- Follow Fabric Fast-Track blueprint specifications strictly
+- Use TodoWrite/TodoRead tools for all task management
+
 ## Project Overview
 This is the Fabric Fast-Track Accelerator - a reusable, end-to-end Microsoft Fabric & Power BI starter kit with private AI developer co-pilot. The goal is to enable standing up a modern data platform for mid-market clients in less than 1 day and ship first insights within the first week.
+
+## Blueprint Compliance Requirements
+**MANDATORY: All development must strictly adhere to Fabric Fast-Track blueprint specifications:**
+- Follow architectural patterns defined in blueprint documentation
+- Implement technical requirements as specified in blueprint
+- Maintain consistency with blueprint guidelines for all components
+- Validate deliverables against blueprint success criteria
+- Reference blueprint specifications before implementing any feature
 
 ## Development Methodology
 Follow the 6-Week Sprint Methodology with 25-45 minute focused sprints:
@@ -58,7 +73,7 @@ Follow the 6-Week Sprint Methodology with 25-45 minute focused sprints:
 - Ensure reports load within 2-second target
 
 ### Task Management Requirements
-- Use TodoWrite tool for ALL sprint planning
+- Use TodoWrite tool for ALL sprint planning and task tracking
 - Break complex features into 25-45 minute tasks
 - Mark tasks complete IMMEDIATELY after finishing
 - Maintain single task in_progress at any time
@@ -85,13 +100,15 @@ Ensure all development follows this exact structure:
 - Cost: AI assistant daily spend stays under 5 dollar budget
 
 ## Autonomous Development Guidelines
+- **Blueprint First**: Always reference and follow Fabric Fast-Track blueprint specifications
 - Proactively use TodoWrite for sprint planning and tracking
-- Follow 6-week roadmap but adapt based on blockers
+- Follow 6-week roadmap but adapt based on blockers and blueprint requirements
 - Prioritize core deliverables over nice-to-have features
 - Test offline modes before considering features complete
 - Update documentation concurrently with code changes
-- Commit frequently with meaningful messages
-- Focus on momentum over perfection - ship working MVPs first
+- Commit frequently with meaningful messages following blueprint patterns
+- Focus on momentum over perfection - ship working MVPs that meet blueprint standards
+- Validate all implementations against blueprint architecture and requirements
 
 ## Key Reference Files
 - Blueprint specifications: fabric_fast_track_blueprint.md
@@ -99,5 +116,11 @@ Ensure all development follows this exact structure:
 - Working practices: fabric_fast_track_best_practices.md
 - Issues log: docs/Gotchas.md
 
+## Claude Code Tool Usage
+- Use TodoWrite/TodoRead extensively for task management
+- Leverage all available tools for autonomous development
+- Prioritize blueprint compliance in all development decisions
+- Maintain focus on deliverable outcomes per sprint methodology
+
 ---
-Kick-off is one commit away—momentum beats perfection\!
+Blueprint-driven autonomous development: Kick-off is one commit away—momentum beats perfection\!
