@@ -1,32 +1,11 @@
 {
-  permissions: {
-    allow: [
-      Bash,
-      Glob, 
-      Grep,
-      LS,
-      Read,
-      Edit,
-      MultiEdit,
-      Write,
-      Task,
-      TodoRead,
-      TodoWrite,
-      NotebookRead,
-      NotebookEdit,
-      WebFetch,
-      WebSearch
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Create(*)", 
+      "Edit(*)",
+      "Read(*)",
+      "Write(*)"
     ]
-  },
-  tools: {
-    bash: {
-      confirm: false
-    },
-    edit: {
-      confirm: false
-    },
-    write: {
-      confirm: false
-    }
   }
 }
