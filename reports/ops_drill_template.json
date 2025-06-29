@@ -1,0 +1,446 @@
+{
+  "name": "Operations Drill-Down Dashboard",
+  "description": "Operational reporting with drill-down capabilities for department managers and operations teams",
+  "version": "1.0",
+  "target_audience": "Operations Managers, Department Heads",
+  "refresh_frequency": "Hourly",
+  "performance_target": "< 2 seconds",
+  "pages": [
+    {
+      "name": "Sales Operations",
+      "displayName": "Sales Operations Overview",
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "id": "sales_velocity_card",
+          "x": 40,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Sales Velocity",
+            "measure": "[Sales Velocity]",
+            "format": "$#,0/day",
+            "dataColors": ["#1f4e79"]
+          }
+        },
+        {
+          "id": "win_rate_card",
+          "x": 240,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Win Rate %",
+            "measure": "[Win Rate %]",
+            "format": "0.0%",
+            "dataColors": ["#70ad47"]
+          }
+        },
+        {
+          "id": "sales_count_card",
+          "x": 440,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Sales Count",
+            "measure": "[Sales Count]",
+            "format": "#,0",
+            "dataColors": ["#2e75b6"]
+          }
+        },
+        {
+          "id": "avg_deal_size_card",
+          "x": 640,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Avg Deal Size",
+            "measure": "[Average Sale Value]",
+            "format": "$#,0",
+            "dataColors": ["#5b9bd5"]
+          }
+        },
+        {
+          "id": "pipeline_health_gauge",
+          "x": 840,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "gauge",
+            "title": "Pipeline Health",
+            "measure": "[Win Rate %]",
+            "target": 0.25,
+            "dataColors": ["#70ad47", "#ffc000", "#c5504b"]
+          }
+        },
+        {
+          "id": "sales_by_channel_matrix",
+          "x": 40,
+          "y": 160,
+          "width": 400,
+          "height": 200,
+          "visual": {
+            "visualType": "matrix",
+            "title": "Sales by Channel & Region",
+            "rows": ["FactSales[Channel]"],
+            "columns": ["FactSales[Region]"],
+            "values": ["[Total Sales]", "[Sales Count]"],
+            "drill_through": true,
+            "performance": {
+              "row_limit": 50
+            }
+          }
+        },
+        {
+          "id": "sales_trend_by_status",
+          "x": 460,
+          "y": 160,
+          "width": 400,
+          "height": 200,
+          "visual": {
+            "visualType": "lineChart",
+            "title": "Sales Trend by Status",
+            "xAxis": "DimDate[Date]",
+            "yAxis": "[Total Sales]",
+            "legend": "FactSales[Status]",
+            "dataColors": ["#70ad47", "#ffc000", "#c5504b", "#5b9bd5"],
+            "performance": {
+              "row_limit": 365,
+              "aggregation_level": "day"
+            }
+          }
+        },
+        {
+          "id": "rep_performance_ranking",
+          "x": 880,
+          "y": 160,
+          "width": 320,
+          "height": 200,
+          "visual": {
+            "visualType": "barChart",
+            "title": "Sales Rep Performance",
+            "xAxis": "[Total Sales]",
+            "yAxis": "FactSales[SalesRep]",
+            "dataColors": ["#1f4e79"],
+            "performance": {
+              "row_limit": 20,
+              "topN": 15
+            }
+          }
+        },
+        {
+          "id": "product_performance_table",
+          "x": 40,
+          "y": 380,
+          "width": 580,
+          "height": 200,
+          "visual": {
+            "visualType": "table",
+            "title": "Product Performance Analysis",
+            "columns": [
+              {
+                "field": "FactSales[ProductName]",
+                "width": 200,
+                "sort": "desc"
+              },
+              {
+                "field": "[Total Sales]",
+                "width": 120,
+                "format": "$#,0"
+              },
+              {
+                "field": "[Total Quantity]",
+                "width": 80,
+                "format": "#,0"
+              },
+              {
+                "field": "[Average Sale Value]",
+                "width": 120,
+                "format": "$#,0"
+              },
+              {
+                "field": "[Sales Growth %]",
+                "width": 100,
+                "format": "0.0%",
+                "conditionalFormatting": true
+              }
+            ],
+            "performance": {
+              "row_limit": 25
+            }
+          }
+        },
+        {
+          "id": "customer_segments_donut",
+          "x": 640,
+          "y": 380,
+          "width": 280,
+          "height": 200,
+          "visual": {
+            "visualType": "donutChart",
+            "title": "Sales by Customer Size",
+            "legend": "DimCustomers[CompanySize]",
+            "values": "[Total Sales]",
+            "dataColors": ["#1f4e79", "#2e75b6", "#5b9bd5", "#a5c8ec"]
+          }
+        },
+        {
+          "id": "conversion_funnel",
+          "x": 940,
+          "y": 380,
+          "width": 260,
+          "height": 200,
+          "visual": {
+            "visualType": "funnelChart",
+            "title": "Sales Conversion Funnel",
+            "stages": [
+              {"name": "Qualified", "measure": "[Sales Count]", "filter": "FactSales[Status] = 'Qualified'"},
+              {"name": "In Progress", "measure": "[Sales Count]", "filter": "FactSales[Status] = 'In Progress'"},
+              {"name": "Closed Won", "measure": "[Sales Count]", "filter": "FactSales[Status] = 'Closed Won'"}
+            ],
+            "dataColors": ["#a5c8ec", "#5b9bd5", "#1f4e79"]
+          }
+        }
+      ],
+      "filters": [
+        {
+          "field": "DimDate[Date]",
+          "type": "dateRange",
+          "position": {
+            "x": 40,
+            "y": 600,
+            "width": 200,
+            "height": 40
+          }
+        },
+        {
+          "field": "FactSales[Region]",
+          "type": "dropdown",
+          "position": {
+            "x": 260,
+            "y": 600,
+            "width": 150,
+            "height": 40
+          }
+        },
+        {
+          "field": "FactSales[Channel]",
+          "type": "dropdown",
+          "position": {
+            "x": 430,
+            "y": 600,
+            "width": 150,
+            "height": 40
+          }
+        },
+        {
+          "field": "FactSales[SalesRep]",
+          "type": "search",
+          "position": {
+            "x": 600,
+            "y": 600,
+            "width": 180,
+            "height": 40
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Operations",
+      "displayName": "Customer Analytics",
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "id": "customer_acquisition_cost_card",
+          "x": 40,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Customer Acq. Cost",
+            "measure": "[Customer Acquisition Cost]",
+            "format": "$#,0",
+            "dataColors": ["#1f4e79"]
+          }
+        },
+        {
+          "id": "customer_lifetime_value_card",
+          "x": 260,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Customer LTV",
+            "measure": "[Customer Lifetime Value]",
+            "format": "$#,0",
+            "dataColors": ["#70ad47"]
+          }
+        },
+        {
+          "id": "revenue_per_customer_card",
+          "x": 480,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Revenue per Customer",
+            "measure": "[Revenue per Customer]",
+            "format": "$#,0",
+            "dataColors": ["#2e75b6"]
+          }
+        },
+        {
+          "id": "top_customers_contribution_card",
+          "x": 700,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Top 10% Customers",
+            "measure": "[Top 10% Customers Sales]",
+            "format": "$#,0,,M",
+            "dataColors": ["#5b9bd5"]
+          }
+        },
+        {
+          "id": "customer_geography_map",
+          "x": 40,
+          "y": 160,
+          "width": 400,
+          "height": 240,
+          "visual": {
+            "visualType": "map",
+            "title": "Customer Geography",
+            "location": "DimCustomers[State]",
+            "size": "[Total Sales]",
+            "performance": {
+              "row_limit": 50
+            }
+          }
+        },
+        {
+          "id": "customer_industry_breakdown",
+          "x": 460,
+          "y": 160,
+          "width": 300,
+          "height": 240,
+          "visual": {
+            "visualType": "pieChart",
+            "title": "Customers by Industry",
+            "legend": "DimCustomers[Industry]",
+            "values": "[Active Customers]",
+            "dataColors": ["#1f4e79", "#2e75b6", "#5b9bd5", "#a5c8ec", "#70ad47", "#ffc000", "#c5504b"]
+          }
+        },
+        {
+          "id": "customer_size_analysis",
+          "x": 780,
+          "y": 160,
+          "width": 420,
+          "height": 240,
+          "visual": {
+            "visualType": "clusteredBarChart",
+            "title": "Revenue by Customer Size",
+            "xAxis": "[Total Sales]",
+            "yAxis": "DimCustomers[CompanySize]",
+            "legend": "DimCustomers[Industry]",
+            "dataColors": ["#1f4e79", "#2e75b6", "#5b9bd5", "#a5c8ec"]
+          }
+        },
+        {
+          "id": "customer_retention_analysis",
+          "x": 40,
+          "y": 420,
+          "width": 560,
+          "height": 200,
+          "visual": {
+            "visualType": "lineChart",
+            "title": "Customer Retention Trend",
+            "xAxis": "DimDate[MonthName]",
+            "yAxis": ["[Active Customers]", "[Customer Lifetime Value]"],
+            "dataColors": ["#1f4e79", "#70ad47"],
+            "performance": {
+              "row_limit": 24,
+              "aggregation_level": "month"
+            }
+          }
+        },
+        {
+          "id": "customer_segmentation_scatter",
+          "x": 620,
+          "y": 420,
+          "width": 580,
+          "height": 200,
+          "visual": {
+            "visualType": "scatterChart",
+            "title": "Customer Segmentation (RFM)",
+            "xAxis": "[Revenue per Customer]",
+            "yAxis": "[Customer Lifetime Value]",
+            "legend": "DimCustomers[CompanySize]",
+            "size": "[Total Sales]",
+            "dataColors": ["#1f4e79", "#2e75b6", "#5b9bd5", "#a5c8ec"],
+            "performance": {
+              "row_limit": 100
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "tables": [
+      "FactSales",
+      "DimCustomers",
+      "DimDate"
+    ],
+    "measures": [
+      "[Sales Velocity]",
+      "[Win Rate %]",
+      "[Sales Count]",
+      "[Average Sale Value]",
+      "[Total Sales]",
+      "[Total Quantity]",
+      "[Sales Growth %]",
+      "[Customer Acquisition Cost]",
+      "[Customer Lifetime Value]",
+      "[Revenue per Customer]",
+      "[Top 10% Customers Sales]",
+      "[Active Customers]"
+    ],
+    "drill_through_pages": [
+      {
+        "name": "Customer Detail",
+        "filter": "DimCustomers[CustomerID]",
+        "visuals": ["customer_transaction_history", "customer_trend_analysis"]
+      },
+      {
+        "name": "Product Detail",
+        "filter": "FactSales[ProductID]",
+        "visuals": ["product_sales_trend", "product_customer_analysis"]
+      }
+    ]
+  },
+  "theme": "fabric_fast_track_theme.json",
+  "performance_settings": {
+    "enable_drill_through": true,
+    "cross_filter_limit": 5,
+    "visual_interaction_timeout": 30,
+    "data_reduction": true,
+    "topN_limit": 100
+  }
+}
+EOF < /dev/null

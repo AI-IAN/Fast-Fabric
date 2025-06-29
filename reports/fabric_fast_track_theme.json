@@ -1,0 +1,311 @@
+{
+  "name": "Fabric Fast-Track Corporate Theme",
+  "version": "1.0",
+  "description": "Professional corporate theme for Fabric Fast-Track Power BI reports with performance optimization",
+  "themeJson": {
+    "name": "FabricFastTrackCorporate",
+    "dataColors": [
+      "#1f4e79",
+      "#2e75b6", 
+      "#5b9bd5",
+      "#a5c8ec",
+      "#deecf9",
+      "#70ad47",
+      "#43682b",
+      "#c5504b",
+      "#e07d39",
+      "#ffc000",
+      "#7030a0",
+      "#44546a"
+    ],
+    "background": "#ffffff",
+    "foreground": "#252423",
+    "tableAccent": "#1f4e79",
+    "good": "#70ad47",
+    "neutral": "#ffc000", 
+    "bad": "#c5504b",
+    "maximum": "#43682b",
+    "center": "#ffc000",
+    "minimum": "#c5504b",
+    "null": "#44546a",
+    "textClasses": {
+      "label": {
+        "color": "#252423",
+        "fontFamily": "Segoe UI, Arial, sans-serif",
+        "fontSize": 11
+      },
+      "title": {
+        "color": "#1f4e79",
+        "fontFamily": "Segoe UI Semibold, Arial, sans-serif",
+        "fontSize": 16
+      },
+      "header": {
+        "color": "#1f4e79", 
+        "fontFamily": "Segoe UI Semibold, Arial, sans-serif",
+        "fontSize": 14
+      },
+      "subTitle": {
+        "color": "#605e5c",
+        "fontFamily": "Segoe UI, Arial, sans-serif",
+        "fontSize": 12
+      }
+    },
+    "visualStyles": {
+      "*": {
+        "general": {
+          "responsive": [
+            {
+              "properties": {
+                "responsive": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "title": [
+          {
+            "properties": {
+              "titleText": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 1,
+                          "Percent": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "fontFamily": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'Segoe UI Semibold'"
+                    }
+                  }
+                }
+              ],
+              "fontSize": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "14D"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "card": {
+        "general": [
+          {
+            "properties": {
+              "outlineColor": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 1,
+                          "Percent": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "outlineWeight": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "1D"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "categoryLabels": [
+          {
+            "properties": {
+              "color": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 1,
+                          "Percent": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "fontFamily": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'Segoe UI Semibold'"
+                    }
+                  }
+                }
+              ],
+              "fontSize": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "24D"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "dataLabels": [
+          {
+            "properties": {
+              "color": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 0,
+                          "Percent": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "fontFamily": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'Segoe UI'"
+                    }
+                  }
+                }
+              ],
+              "fontSize": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "36D"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "columnChart": {
+        "dataPoint": [
+          {
+            "properties": {
+              "fill": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 1,
+                          "Percent": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "lineChart": {
+        "dataPoint": [
+          {
+            "properties": {
+              "fill": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 1,
+                          "Percent": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "slicer": {
+        "general": [
+          {
+            "properties": {
+              "outlineColor": [
+                {
+                  "solid": {
+                    "color": {
+                      "expr": {
+                        "ThemeDataColor": {
+                          "ColorId": 1,
+                          "Percent": 0.5
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "outlineWeight": [
+                {
+                  "expr": {
+                    "Literal": {
+                      "Value": "1D"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "performance_optimizations": {
+    "reduce_visual_interactions": true,
+    "minimize_cross_filtering": true,
+    "optimize_data_reduction": true,
+    "cache_frequently_used_visuals": true,
+    "limit_data_points_per_visual": 1000
+  },
+  "corporate_guidelines": {
+    "primary_color": "#1f4e79",
+    "secondary_color": "#2e75b6", 
+    "accent_color": "#70ad47",
+    "warning_color": "#ffc000",
+    "error_color": "#c5504b",
+    "neutral_color": "#605e5c",
+    "background_color": "#ffffff",
+    "text_color": "#252423"
+  }
+}
+EOF < /dev/null

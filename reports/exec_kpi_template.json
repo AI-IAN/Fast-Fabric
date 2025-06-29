@@ -1,0 +1,271 @@
+{
+  "name": "Executive KPI Dashboard",
+  "description": "C-suite executive dashboard with key performance indicators optimized for <2 second load times",
+  "version": "1.0",
+  "target_audience": "C-Suite Executives",
+  "refresh_frequency": "Daily",
+  "performance_target": "< 2 seconds",
+  "pages": [
+    {
+      "name": "Executive Overview",
+      "displayName": "Executive Summary",
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "id": "revenue_card",
+          "x": 40,
+          "y": 40,
+          "width": 200,
+          "height": 120,
+          "visual": {
+            "visualType": "card",
+            "title": "Total Revenue",
+            "measure": "[Total Revenue]",
+            "format": "$#,0,,M",
+            "dataColors": ["#1f4e79"],
+            "performance": {
+              "row_limit": 1,
+              "cache_duration": "1 hour"
+            }
+          }
+        },
+        {
+          "id": "revenue_growth_card", 
+          "x": 260,
+          "y": 40,
+          "width": 200,
+          "height": 120,
+          "visual": {
+            "visualType": "card",
+            "title": "Revenue Growth %",
+            "measure": "[Revenue Growth %]",
+            "format": "0.0%",
+            "conditionalFormatting": {
+              "positive": "#70ad47",
+              "negative": "#c5504b"
+            }
+          }
+        },
+        {
+          "id": "net_income_card",
+          "x": 480,
+          "y": 40,
+          "width": 200,
+          "height": 120,
+          "visual": {
+            "visualType": "card",
+            "title": "Net Income",
+            "measure": "[Net Income]",
+            "format": "$#,0,,M",
+            "dataColors": ["#2e75b6"]
+          }
+        },
+        {
+          "id": "active_customers_card",
+          "x": 700,
+          "y": 40,
+          "width": 200,
+          "height": 120,
+          "visual": {
+            "visualType": "card",
+            "title": "Active Customers",
+            "measure": "[Active Customers]",
+            "format": "#,0",
+            "dataColors": ["#5b9bd5"]
+          }
+        },
+        {
+          "id": "gross_margin_card",
+          "x": 920,
+          "y": 40,
+          "width": 200,
+          "height": 120,
+          "visual": {
+            "visualType": "card",
+            "title": "Gross Margin %",
+            "measure": "[Gross Margin %]",
+            "format": "0.0%",
+            "dataColors": ["#70ad47"]
+          }
+        },
+        {
+          "id": "revenue_trend_chart",
+          "x": 40,
+          "y": 180,
+          "width": 560,
+          "height": 240,
+          "visual": {
+            "visualType": "lineChart",
+            "title": "Revenue Trend (12 Months)",
+            "xAxis": "DimDate[MonthName]",
+            "yAxis": "[Total Revenue]",
+            "legend": false,
+            "dataColors": ["#1f4e79"],
+            "performance": {
+              "row_limit": 12,
+              "aggregation_level": "month"
+            }
+          }
+        },
+        {
+          "id": "sales_by_region_chart",
+          "x": 620,
+          "y": 180,
+          "width": 280,
+          "height": 240,
+          "visual": {
+            "visualType": "donutChart",
+            "title": "Sales by Region",
+            "legend": "FactSales[Region]",
+            "values": "[Total Sales]",
+            "dataColors": ["#1f4e79", "#2e75b6", "#5b9bd5", "#a5c8ec"],
+            "performance": {
+              "row_limit": 10
+            }
+          }
+        },
+        {
+          "id": "top_customers_chart",
+          "x": 920,
+          "y": 180,
+          "width": 280,
+          "height": 240,
+          "visual": {
+            "visualType": "barChart",
+            "title": "Top 10 Customers",
+            "xAxis": "[Revenue per Customer]",
+            "yAxis": "DimCustomers[CustomerName]",
+            "dataColors": ["#2e75b6"],
+            "performance": {
+              "row_limit": 10,
+              "topN": 10
+            }
+          }
+        },
+        {
+          "id": "kpi_grid",
+          "x": 40,
+          "y": 440,
+          "width": 560,
+          "height": 200,
+          "visual": {
+            "visualType": "table",
+            "title": "Key Performance Indicators",
+            "columns": [
+              {
+                "field": "Metric",
+                "width": 200,
+                "values": ["Revenue YTD", "Sales Growth %", "Customer Acquisition", "Market Share"]
+              },
+              {
+                "field": "Current",
+                "width": 120,
+                "measures": ["[Sales YTD]", "[Sales Growth %]", "[Active Customers]", "25%"]
+              },
+              {
+                "field": "Previous",
+                "width": 120,
+                "measures": ["[Sales Previous Year]", "[Revenue Growth %]", "[Customer Lifetime Value]", "23%"]
+              },
+              {
+                "field": "Variance",
+                "width": 120,
+                "conditionalFormatting": true
+              }
+            ],
+            "performance": {
+              "row_limit": 10
+            }
+          }
+        },
+        {
+          "id": "financial_summary",
+          "x": 620,
+          "y": 440,
+          "width": 580,
+          "height": 200,
+          "visual": {
+            "visualType": "clusteredColumnChart",
+            "title": "Financial Summary (Quarterly)",
+            "xAxis": "DimDate[Quarter]",
+            "yAxis": ["[Total Revenue]", "[Total Expenses]", "[Net Income]"],
+            "dataColors": ["#1f4e79", "#c5504b", "#70ad47"],
+            "performance": {
+              "row_limit": 8,
+              "aggregation_level": "quarter"
+            }
+          }
+        }
+      ],
+      "filters": [
+        {
+          "field": "DimDate[Year]",
+          "type": "dropdown",
+          "position": {
+            "x": 40,
+            "y": 660,
+            "width": 150,
+            "height": 40
+          }
+        },
+        {
+          "field": "FactSales[Region]", 
+          "type": "dropdown",
+          "position": {
+            "x": 210,
+            "y": 660,
+            "width": 150,
+            "height": 40
+          }
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "tables": [
+      "FactSales",
+      "FactFinancial", 
+      "DimCustomers",
+      "DimDate"
+    ],
+    "measures": [
+      "[Total Revenue]",
+      "[Revenue Growth %]",
+      "[Net Income]",
+      "[Active Customers]",
+      "[Gross Margin %]",
+      "[Sales YTD]",
+      "[Sales Growth %]",
+      "[Revenue per Customer]",
+      "[Total Sales]",
+      "[Total Expenses]",
+      "[Sales Previous Year]",
+      "[Customer Lifetime Value]"
+    ],
+    "performance_optimizations": {
+      "aggregations": true,
+      "composite_models": false,
+      "directquery_limit": 1000000,
+      "import_mode": false,
+      "direct_lake": true
+    }
+  },
+  "theme": "fabric_fast_track_theme.json",
+  "mobile_layout": {
+    "enabled": true,
+    "phone_layout": {
+      "width": 360,
+      "height": 640,
+      "key_visuals": ["revenue_card", "revenue_growth_card", "revenue_trend_chart"]
+    }
+  },
+  "performance_settings": {
+    "query_timeout": 120,
+    "visual_interaction_timeout": 30,
+    "cross_filter_limit": 3,
+    "background_refresh": true,
+    "cache_refresh_frequency": "1 hour"
+  }
+}
+EOF < /dev/null

@@ -1,0 +1,524 @@
+{
+  "name": "Financial Variance Analysis Dashboard",
+  "description": "Financial analysis dashboard with budget variance, P&L analysis, and variance reporting for CFO and finance teams",
+  "version": "1.0",
+  "target_audience": "CFO, Finance Directors, Financial Analysts",
+  "refresh_frequency": "Daily",
+  "performance_target": "< 2 seconds",
+  "pages": [
+    {
+      "name": "P&L Variance",
+      "displayName": "P&L Variance Analysis",
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "id": "total_revenue_card",
+          "x": 40,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Total Revenue",
+            "measure": "[Total Revenue]",
+            "format": "$#,0,,M",
+            "dataColors": ["#1f4e79"]
+          }
+        },
+        {
+          "id": "total_expenses_card",
+          "x": 240,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Total Expenses",
+            "measure": "[Total Expenses]",
+            "format": "$#,0,,M",
+            "dataColors": ["#c5504b"]
+          }
+        },
+        {
+          "id": "net_income_card",
+          "x": 440,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Net Income",
+            "measure": "[Net Income]",
+            "format": "$#,0,,M",
+            "conditionalFormatting": {
+              "positive": "#70ad47",
+              "negative": "#c5504b"
+            }
+          }
+        },
+        {
+          "id": "gross_margin_card",
+          "x": 640,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Gross Margin %",
+            "measure": "[Gross Margin %]",
+            "format": "0.0%",
+            "dataColors": ["#70ad47"]
+          }
+        },
+        {
+          "id": "ebitda_card",
+          "x": 840,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "EBITDA",
+            "measure": "[EBITDA]",
+            "format": "$#,0,,M",
+            "dataColors": ["#2e75b6"]
+          }
+        },
+        {
+          "id": "budget_variance_gauge",
+          "x": 1040,
+          "y": 40,
+          "width": 180,
+          "height": 100,
+          "visual": {
+            "visualType": "gauge",
+            "title": "Budget Variance",
+            "measure": "[Budget Variance %]",
+            "target": 0,
+            "dataColors": ["#70ad47", "#ffc000", "#c5504b"]
+          }
+        },
+        {
+          "id": "revenue_vs_budget_chart",
+          "x": 40,
+          "y": 160,
+          "width": 400,
+          "height": 200,
+          "visual": {
+            "visualType": "clusteredColumnChart",
+            "title": "Revenue vs Budget (Monthly)",
+            "xAxis": "DimDate[MonthName]",
+            "yAxis": ["[Total Revenue]", "[Budget Variance %]"],
+            "dataColors": ["#1f4e79", "#ffc000"],
+            "performance": {
+              "row_limit": 12,
+              "aggregation_level": "month"
+            }
+          }
+        },
+        {
+          "id": "expense_breakdown_chart",
+          "x": 460,
+          "y": 160,
+          "width": 400,
+          "height": 200,
+          "visual": {
+            "visualType": "waterfallChart",
+            "title": "Expense Breakdown",
+            "category": "FactFinancial[Department]",
+            "yAxis": "[Total Expenses]",
+            "dataColors": ["#c5504b", "#e07d39", "#ffc000"],
+            "performance": {
+              "row_limit": 10
+            }
+          }
+        },
+        {
+          "id": "profit_margin_trend",
+          "x": 880,
+          "y": 160,
+          "width": 340,
+          "height": 200,
+          "visual": {
+            "visualType": "areaChart",
+            "title": "Profit Margin Trend",
+            "xAxis": "DimDate[Date]",
+            "yAxis": "[Gross Margin %]",
+            "dataColors": ["#70ad47"],
+            "performance": {
+              "row_limit": 365,
+              "aggregation_level": "day"
+            }
+          }
+        },
+        {
+          "id": "variance_analysis_table",
+          "x": 40,
+          "y": 380,
+          "width": 600,
+          "height": 240,
+          "visual": {
+            "visualType": "table",
+            "title": "Variance Analysis by Account",
+            "columns": [
+              {
+                "field": "FactFinancial[Account]",
+                "width": 150,
+                "sort": "asc"
+              },
+              {
+                "field": "[Total Revenue]",
+                "width": 120,
+                "format": "$#,0,K"
+              },
+              {
+                "field": "Budget Amount",
+                "width": 120,
+                "format": "$#,0,K",
+                "calculated": "[Total Revenue] * 1.1"
+              },
+              {
+                "field": "[Budget Variance %]",
+                "width": 100,
+                "format": "0.0%",
+                "conditionalFormatting": {
+                  "rules": [
+                    {"condition": "> 0", "color": "#70ad47"},
+                    {"condition": "< -0.05", "color": "#c5504b"},
+                    {"condition": "default", "color": "#ffc000"}
+                  ]
+                }
+              },
+              {
+                "field": "Variance Amount",
+                "width": 120,
+                "format": "$#,0,K",
+                "calculated": "[Total Revenue] - ([Total Revenue] * 1.1)"
+              }
+            ],
+            "performance": {
+              "row_limit": 20
+            }
+          }
+        },
+        {
+          "id": "department_performance_matrix",
+          "x": 660,
+          "y": 380,
+          "width": 560,
+          "height": 240,
+          "visual": {
+            "visualType": "matrix",
+            "title": "Department Performance Matrix",
+            "rows": ["FactFinancial[Department]"],
+            "columns": ["FactFinancial[Account]"],
+            "values": ["[Total Revenue]", "[Budget Variance %]"],
+            "conditionalFormatting": true,
+            "performance": {
+              "row_limit": 50
+            }
+          }
+        }
+      ],
+      "filters": [
+        {
+          "field": "DimDate[FiscalYear]",
+          "type": "dropdown",
+          "position": {
+            "x": 40,
+            "y": 640,
+            "width": 150,
+            "height": 40
+          }
+        },
+        {
+          "field": "DimDate[FiscalQuarter]",
+          "type": "dropdown",
+          "position": {
+            "x": 210,
+            "y": 640,
+            "width": 150,
+            "height": 40
+          }
+        },
+        {
+          "field": "FactFinancial[Department]",
+          "type": "multiSelect",
+          "position": {
+            "x": 380,
+            "y": 640,
+            "width": 200,
+            "height": 40
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cash Flow Analysis",
+      "displayName": "Cash Flow & Working Capital",
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "id": "operating_cash_flow_card",
+          "x": 40,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Operating Cash Flow",
+            "measure": "[Operating Cash Flow]",
+            "format": "$#,0,,M",
+            "dataColors": ["#1f4e79"]
+          }
+        },
+        {
+          "id": "working_capital_card",
+          "x": 260,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Working Capital",
+            "measure": "[Working Capital]",
+            "format": "$#,0,,M",
+            "dataColors": ["#2e75b6"]
+          }
+        },
+        {
+          "id": "days_sales_outstanding_card",
+          "x": 480,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Days Sales Outstanding",
+            "measure": "[Days Sales Outstanding]",
+            "format": "#,0 days",
+            "dataColors": ["#5b9bd5"]
+          }
+        },
+        {
+          "id": "cash_conversion_cycle_card",
+          "x": 700,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Cash Conversion Cycle",
+            "measure": "[Cash Conversion Cycle]",
+            "format": "#,0 days",
+            "dataColors": ["#70ad47"]
+          }
+        },
+        {
+          "id": "roa_card",
+          "x": 920,
+          "y": 40,
+          "width": 200,
+          "height": 100,
+          "visual": {
+            "visualType": "card",
+            "title": "Return on Assets",
+            "measure": "[Return on Assets %]",
+            "format": "0.0%",
+            "dataColors": ["#a5c8ec"]
+          }
+        },
+        {
+          "id": "cash_flow_waterfall",
+          "x": 40,
+          "y": 160,
+          "width": 500,
+          "height": 240,
+          "visual": {
+            "visualType": "waterfallChart",
+            "title": "Cash Flow Waterfall (Quarterly)",
+            "category": "Cash Flow Components",
+            "yAxis": "[Operating Cash Flow]",
+            "categories": [
+              "Opening Balance",
+              "Revenue",
+              "Expenses", 
+              "Working Capital Change",
+              "Closing Balance"
+            ],
+            "dataColors": ["#1f4e79", "#70ad47", "#c5504b", "#ffc000", "#2e75b6"]
+          }
+        },
+        {
+          "id": "working_capital_trend",
+          "x": 560,
+          "y": 160,
+          "width": 400,
+          "height": 240,
+          "visual": {
+            "visualType": "lineChart",
+            "title": "Working Capital Trend",
+            "xAxis": "DimDate[Date]",
+            "yAxis": ["[Working Capital]", "[Days Sales Outstanding]"],
+            "dataColors": ["#1f4e79", "#c5504b"],
+            "performance": {
+              "row_limit": 24,
+              "aggregation_level": "month"
+            }
+          }
+        },
+        {
+          "id": "liquidity_ratios_gauge",
+          "x": 980,
+          "y": 160,
+          "width": 240,
+          "height": 240,
+          "visual": {
+            "visualType": "multiRowCard",
+            "title": "Liquidity Ratios",
+            "fields": [
+              {
+                "measure": "[Return on Assets %]",
+                "format": "0.0%",
+                "label": "ROA"
+              },
+              {
+                "measure": "[Debt to Equity Ratio]",
+                "format": "0.00",
+                "label": "Debt/Equity"
+              },
+              {
+                "measure": "[Inventory Turnover]",
+                "format": "0.0x",
+                "label": "Inventory Turns"
+              }
+            ]
+          }
+        },
+        {
+          "id": "financial_ratios_radar",
+          "x": 40,
+          "y": 420,
+          "width": 400,
+          "height": 200,
+          "visual": {
+            "visualType": "radarChart",
+            "title": "Financial Health Radar",
+            "axis": [
+              "Liquidity",
+              "Profitability", 
+              "Efficiency",
+              "Leverage",
+              "Growth"
+            ],
+            "values": [
+              "[Working Capital]",
+              "[Gross Margin %]",
+              "[Inventory Turnover]",
+              "[Debt to Equity Ratio]",
+              "[Revenue Growth %]"
+            ],
+            "dataColors": ["#1f4e79"]
+          }
+        },
+        {
+          "id": "monthly_financial_summary",
+          "x": 460,
+          "y": 420,
+          "width": 760,
+          "height": 200,
+          "visual": {
+            "visualType": "table",
+            "title": "Monthly Financial Summary",
+            "columns": [
+              {
+                "field": "DimDate[MonthName]",
+                "width": 100
+              },
+              {
+                "field": "[Total Revenue]",
+                "width": 120,
+                "format": "$#,0,K"
+              },
+              {
+                "field": "[Total Expenses]",
+                "width": 120,
+                "format": "$#,0,K"
+              },
+              {
+                "field": "[Net Income]",
+                "width": 120,
+                "format": "$#,0,K",
+                "conditionalFormatting": true
+              },
+              {
+                "field": "[Operating Cash Flow]",
+                "width": 120,
+                "format": "$#,0,K"
+              },
+              {
+                "field": "[Budget Variance %]",
+                "width": 100,
+                "format": "0.0%",
+                "conditionalFormatting": true
+              },
+              {
+                "field": "[Gross Margin %]",
+                "width": 100,
+                "format": "0.0%"
+              }
+            ],
+            "performance": {
+              "row_limit": 12
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "tables": [
+      "FactFinancial",
+      "DimDate"
+    ],
+    "measures": [
+      "[Total Revenue]",
+      "[Total Expenses]",
+      "[Net Income]",
+      "[Gross Margin %]",
+      "[EBITDA]",
+      "[Budget Variance %]",
+      "[Operating Cash Flow]",
+      "[Working Capital]",
+      "[Days Sales Outstanding]",
+      "[Cash Conversion Cycle]",
+      "[Return on Assets %]",
+      "[Debt to Equity Ratio]",
+      "[Inventory Turnover]",
+      "[Revenue Growth %]"
+    ],
+    "calculated_columns": [
+      {
+        "table": "FactFinancial",
+        "name": "Budget Amount",
+        "expression": "FactFinancial[Amount] * 1.1"
+      },
+      {
+        "table": "FactFinancial", 
+        "name": "Variance Amount",
+        "expression": "FactFinancial[Amount] - FactFinancial[Budget Amount]"
+      }
+    ]
+  },
+  "theme": "fabric_fast_track_theme.json",
+  "performance_settings": {
+    "enable_cross_highlight": true,
+    "cross_filter_limit": 3,
+    "visual_interaction_timeout": 30,
+    "budget_calculation_mode": "on_demand",
+    "fiscal_year_support": true
+  }
+}
+EOF < /dev/null
