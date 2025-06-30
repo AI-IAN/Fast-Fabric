@@ -142,7 +142,7 @@ class RLSTestHarness:
             }
             
             # Validate expected results
-            if expected_row_count and result.get('row_count', 0) \!= expected_row_count:
+            if expected_row_count and result.get('row_count', 0) != expected_row_count:
                 test_result['success'] = False
                 test_result['error'] = f"Expected {expected_row_count} rows, got {result.get('row_count', 0)}"
                 self.failed_tests.append(test_result)
@@ -350,9 +350,9 @@ class RLSTestHarness:
         
         for test in self.test_results:
             if test['success']:
-                junit_xml += f'  <testcase classname="RLS" name="{test['test_name']}" time="{test.get('execution_time_ms', 0)/1000}"/>\n'
+                junit_xml += f'  <testcase classname="RLS" name="{test["test_name"]}" time="{test.get("execution_time_ms", 0)/1000}"/>\n'
             else:
-                junit_xml += f'  <testcase classname="RLS" name="{test['test_name']}" time="0">\n'
+                junit_xml += f'  <testcase classname="RLS" name="{test["test_name"]}" time="0">\n'
                 junit_xml += f'    <failure message="{test.get('error', 'Unknown error')}">\n'
                 junit_xml += f'      User: {test['user']}\n'
                 junit_xml += f'      Role: {test['role']}\n'
@@ -436,7 +436,7 @@ class RLSTestHarness:
             print("\nFAILED TESTS:")
             print("-" * 40)
             for test in self.failed_tests:
-                print(f"❌ {test['test_name']}")
+                print(f"❌ {test["test_name"]}")
                 print(f"   User: {test['user']}")
                 print(f"   Error: {test.get('error', 'Unknown error')}")
                 print()
