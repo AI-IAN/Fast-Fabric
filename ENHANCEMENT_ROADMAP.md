@@ -17,6 +17,40 @@ Transform Fabric Fast-Track from a deployment accelerator into a comprehensive d
 
 ---
 
+## 🆕 **Recently Added Enhancement Features**
+
+*The following features have been integrated into the strategic roadmap and are ready for GitHub issue creation:*
+
+### Phase 1 Features (3-Month Timeline)
+
+#### 1. **Advanced Data Catalog & Metadata Management**
+- **Priority**: High | **Effort**: 3 weeks | **Phase**: 1 - Market Differentiation
+- **Description**: Enterprise-grade metadata management with Microsoft Purview integration
+- **Deliverables**: Searchable data catalog, automated metadata discovery, data lineage visualization
+- **Business Impact**: Improve data governance, compliance, and user self-service analytics
+
+#### 2. **Schema Detective AI Module**
+- **Priority**: High | **Effort**: 3 weeks | **Phase**: 1 - AI Assistant Evolution
+- **Description**: AI-powered automatic discovery of data relationships and foreign keys
+- **Deliverables**: Automated relationship mapping, schema analysis, data model suggestions
+- **Business Impact**: Reduce manual data modeling effort, improve data accuracy
+
+#### 3. **Anomaly Hunter AI Module**
+- **Priority**: Medium | **Effort**: 2 weeks | **Phase**: 1 - AI Assistant Evolution
+- **Description**: ML-powered detection of data quality issues and business metric anomalies
+- **Deliverables**: Real-time anomaly detection, alerting system, trend analysis
+- **Business Impact**: Proactive issue detection, improved data quality, reduced manual monitoring
+
+### Phase 2 Features (6-Month Timeline)
+
+#### 4. **Comprehensive Automated Testing Framework**
+- **Priority**: High | **Effort**: 5 weeks | **Phase**: 2 - Governance & Compliance
+- **Description**: End-to-end test automation for DAX measures, data pipelines, and Power BI reports
+- **Deliverables**: Unit tests for DAX, integration tests for pipelines, visual regression testing for reports, performance benchmarking automation
+- **Business Impact**: Quality assurance at scale, reduced manual testing effort, faster deployment cycles
+
+---
+
 ## Market Positioning Analysis
 
 ### Current Competitive Advantages
