@@ -63,12 +63,14 @@ Transform Fabric Fast-Track from a deployment accelerator into a comprehensive d
 | **ML Data Profiling** | High | 3 weeks | Data quality leadership |
 | **Industry Templates** | Medium | 2 weeks | Market expansion |
 | **Quality Automation** | Medium | 2 weeks | Operational efficiency |
+| **Advanced Data Catalog** | High | 3 weeks | Enterprise metadata management |
 
 **Deliverables**:
 - Event Hubs/IoT streaming connectors
 - ML-powered data anomaly detection
 - Manufacturing, Retail, Healthcare templates
 - Automated data quality remediation
+- Microsoft Purview integration with searchable data catalog
 
 #### AI Assistant Evolution
 | Feature | Priority | Effort | Business Impact |
@@ -77,12 +79,16 @@ Transform Fabric Fast-Track from a deployment accelerator into a comprehensive d
 | **Performance Optimization** | High | 2 weeks | Technical differentiation |
 | **Auto Documentation** | Medium | 2 weeks | Governance enhancement |
 | **Usage Forecasting** | Medium | 1 week | Cost predictability |
+| **Schema Detective** | High | 3 weeks | Automated relationship discovery |
+| **Anomaly Hunter** | Medium | 2 weeks | Proactive issue detection |
 
 **Deliverables**:
 - NL to Power Query M-code generator
 - Automated performance tuning suggestions
 - AI-generated data lineage documentation
 - Predictive cost modeling
+- Auto-discovery of data relationships and foreign keys
+- ML-powered data quality and business metric anomaly detection
 
 ### 🚀 **Phase 2: Enterprise Readiness** (6 Months - Q2 2025)
 **Focus**: Scalability, compliance, and advanced analytics
@@ -124,12 +130,15 @@ Transform Fabric Fast-Track from a deployment accelerator into a comprehensive d
 | **Data Lineage** | High | 4 weeks | Regulatory requirements |
 | **Policy Automation** | Medium | 3 weeks | Operational efficiency |
 | **Security Scanning** | Medium | 2 weeks | Risk mitigation |
+| **Automated Testing Framework** | High | 5 weeks | Quality assurance at scale |
 
 **Deliverables**:
 - GDPR/SOX/HIPAA compliance templates
 - Visual data lineage with impact analysis
 - Automated policy enforcement
 - Continuous security vulnerability scanning
+- Comprehensive test automation suite (unit, integration, visual regression)
+- Performance benchmarking automation for all components
 
 ### 🌟 **Phase 3: Platform Transformation** (12 Months - Q3-Q4 2025)
 **Focus**: Ecosystem development and advanced intelligence
@@ -321,10 +330,12 @@ Transform Fabric Fast-Track from a deployment accelerator into a comprehensive d
 
 ### Immediate Actions (Next 30 Days)
 1. **Team Planning**: Recruit additional developers and PM
-2. **Technology Evaluation**: Assess new tools and frameworks
-3. **Market Research**: Validate enhancement priorities with customers
-4. **Architecture Review**: Plan for scalability and modularity
+2. **Technology Evaluation**: Assess new tools and frameworks for enhanced AI capabilities
+3. **Market Research**: Validate enhancement priorities with customers, especially data catalog needs
+4. **Architecture Review**: Plan for scalability and modularity, including automated testing framework
 5. **Community Strategy**: Develop engagement and contribution plans
+6. **Prototype Development**: Begin proof-of-concept for Schema Detective AI module
+7. **Testing Strategy**: Design comprehensive automated testing framework architecture
 
 ### Long-term Vision
 Transform Fabric Fast-Track into the de facto standard for modern data platform deployment, enabling organizations worldwide to achieve enterprise-grade analytics capabilities with unprecedented speed and efficiency.
