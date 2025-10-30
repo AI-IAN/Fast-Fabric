@@ -6,7 +6,7 @@
       "value": "dev"
     },
     "orgPrefix": {
-      "value": "fft"  
+      "value": "fft"
     },
     "fabricCapacitySku": {
       "value": "F2"
@@ -19,6 +19,17 @@
     },
     "logRetentionDays": {
       "value": 30
+    },
+    "sqlAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/{subscription-id}/resourceGroups/{rg-name}/providers/Microsoft.KeyVault/vaults/{kv-name}"
+        },
+        "secretName": "sql-admin-password"
+      }
+    },
+    "sqlAllowedIpAddresses": {
+      "value": ""
     }
   }
 }

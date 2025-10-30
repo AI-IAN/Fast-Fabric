@@ -25,9 +25,17 @@ param enableMonitoring bool = true
 @description("Log Analytics workspace retention days")
 param logRetentionDays int = 30
 
+@description("SQL Server administrator password - should be passed from Key Vault or secure parameter")
+@secure()
+param sqlAdminPassword string
+
+@description("Allowed IP addresses for SQL Server access (comma-separated)")
+param sqlAllowedIpAddresses string = ""
+
 // Variables for consistent naming
 var namingPrefix = "${orgPrefix}-fabric-${environment}"
 var adminEmails = split(fabricAdmins, ";")
+var allowedIps = split(sqlAllowedIpAddresses, ",")
 
 // Log Analytics Workspace for monitoring
 resource logAnalyticsWorkspace "Microsoft.OperationalInsights/workspaces@2023-09-01" = if (enableMonitoring) {
@@ -144,10 +152,10 @@ resource sqlServer "Microsoft.Sql/servers@2023-08-01-preview" = {
   location: location
   properties: {
     administratorLogin: "fabricadmin"
-    administratorLoginPassword: "TempPassword123\!" // Should be replaced via Key Vault
+    administratorLoginPassword: sqlAdminPassword
     version: "12.0"
     minimalTlsVersion: "1.2"
-    publicNetworkAccess: "Enabled"
+    publicNetworkAccess: "Disabled" // Use private endpoints for production
   }
 }
 
@@ -166,8 +174,8 @@ resource sqlDatabase "Microsoft.Sql/servers/databases@2023-08-01-preview" = {
   }
 }
 
-// Firewall rule to allow Azure services
-resource sqlFirewallRule "Microsoft.Sql/servers/firewallRules@2023-08-01-preview" = {
+// Firewall rule to allow Azure services (only if public access required)
+resource sqlFirewallRuleAzure "Microsoft.Sql/servers/firewallRules@2023-08-01-preview" = if (sqlAllowedIpAddresses == "") {
   parent: sqlServer
   name: "AllowAzureServices"
   properties: {
@@ -175,6 +183,16 @@ resource sqlFirewallRule "Microsoft.Sql/servers/firewallRules@2023-08-01-preview
     endIpAddress: "0.0.0.0"
   }
 }
+
+// Custom firewall rules for specific IP addresses
+resource sqlFirewallRules "Microsoft.Sql/servers/firewallRules@2023-08-01-preview" = [for (ip, i) in allowedIps: if (ip != "") {
+  parent: sqlServer
+  name: "AllowIP${i}"
+  properties: {
+    startIpAddress: ip
+    endIpAddress: ip
+  }
+}]
 
 // Container Instance for AI Assistant (Streamlit UI)
 resource containerGroup "Microsoft.ContainerInstance/containerGroups@2023-05-01" = {
@@ -210,7 +228,7 @@ resource containerGroup "Microsoft.ContainerInstance/containerGroups@2023-05-01"
             }
             {
               name: "SQL_CONNECTION_STRING"
-              secureValue: "Server=${sqlServer.properties.fullyQualifiedDomainName};Database=ai-assistant-db;User Id=fabricadmin;Password=TempPassword123\!;"
+              secureValue: "Server=${sqlServer.properties.fullyQualifiedDomainName};Database=ai-assistant-db;User Id=fabricadmin;Password=${sqlAdminPassword};"
             }
             {
               name: "FABRIC_CAPACITY_ID"
@@ -255,7 +273,7 @@ resource sqlConnectionStringSecret "Microsoft.KeyVault/vaults/secrets@2023-07-01
   parent: keyVault
   name: "sql-connection-string"
   properties: {
-    value: "Server=${sqlServer.properties.fullyQualifiedDomainName};Database=ai-assistant-db;User Id=fabricadmin;Password=TempPassword123\!;"
+    value: "Server=${sqlServer.properties.fullyQualifiedDomainName};Database=ai-assistant-db;User Id=fabricadmin;Password=${sqlAdminPassword};"
   }
 }
 
